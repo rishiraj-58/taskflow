@@ -31,6 +31,9 @@ const nextConfig = {
             };
           }
         }
+
+        // Ignore tailwind.config.ts file
+        config.resolve.alias['tailwindcss'] = false;
       }
     }
     return config;
