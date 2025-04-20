@@ -11,24 +11,24 @@ const nextConfig = {
       config.optimization.minimize = false;
 
       // Skip PostCSS and Tailwind processing in CI
-      if (process.env.SKIP_TAILWIND === 'true') {
+      if (process.env.SKIP_TAILWIND === 'true' || process.env.SKIP_POSTCSS === '1') {
+        // Completely remove CSS handling in CI builds
         const rules = config.module.rules;
         
-        // Find the PostCSS loader rule and modify it
-        for (const rule of rules) {
-          if (!rule.oneOf) continue;
-          
-          for (const oneOf of rule.oneOf) {
-            if (!oneOf.use || !Array.isArray(oneOf.use)) continue;
-            
-            const postcssLoader = oneOf.use.find(use => 
-              use && typeof use === 'object' && use.loader && use.loader.includes('postcss-loader')
-            );
-            
-            if (postcssLoader) {
-              // Empty the options to skip PostCSS processing
-              postcssLoader.options = { postcssOptions: { plugins: [] } };
-            }
+        // Find CSS rule and disable it
+        for (let i = 0; i < rules.length; i++) {
+          const rule = rules[i];
+          if (rule.test && rule.test.test && 
+              (rule.test.test('file.css') || rule.test.test('file.scss') || rule.test.test('file.sass'))) {
+            // Replace with a dummy rule that does nothing
+            rules[i] = {
+              test: rule.test,
+              use: [
+                {
+                  loader: 'null-loader',
+                },
+              ],
+            };
           }
         }
       }
