@@ -19,11 +19,28 @@ export const metadata: Metadata = {
   description: "A comprehensive project management tool for development teams",
 };
 
+// Conditionally wrap with ClerkProvider based on environment
+const withAuth = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
+                !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith('pk_test');
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Skip Clerk integration during CI builds with dummy keys
+  if (!withAuth) {
+    return (
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {children}
+        </body>
+      </html>
+    );
+  }
+
   return (
     <ClerkProvider>
       <html lang="en">
