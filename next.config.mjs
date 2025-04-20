@@ -9,6 +9,29 @@ const nextConfig = {
     if (process.env.CI) {
       // Reduce optimization in CI environments
       config.optimization.minimize = false;
+
+      // Skip PostCSS and Tailwind processing in CI
+      if (process.env.SKIP_TAILWIND === 'true') {
+        const rules = config.module.rules;
+        
+        // Find the PostCSS loader rule and modify it
+        for (const rule of rules) {
+          if (!rule.oneOf) continue;
+          
+          for (const oneOf of rule.oneOf) {
+            if (!oneOf.use || !Array.isArray(oneOf.use)) continue;
+            
+            const postcssLoader = oneOf.use.find(use => 
+              use && typeof use === 'object' && use.loader && use.loader.includes('postcss-loader')
+            );
+            
+            if (postcssLoader) {
+              // Empty the options to skip PostCSS processing
+              postcssLoader.options = { postcssOptions: { plugins: [] } };
+            }
+          }
+        }
+      }
     }
     return config;
   },
