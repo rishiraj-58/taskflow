@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -14,33 +14,11 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-export const metadata: Metadata = {
-  title: "TaskFlow - Project Management Tool",
-  description: "A comprehensive project management tool for development teams",
-};
-
-// Conditionally wrap with ClerkProvider based on environment
-const withAuth = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
-                !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith('pk_test');
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Skip Clerk integration during CI builds with dummy keys
-  if (!withAuth) {
-    return (
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          {children}
-        </body>
-      </html>
-    );
-  }
-
   return (
     <ClerkProvider>
       <html lang="en">
@@ -48,6 +26,7 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           {children}
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
@@ -12,39 +6,43 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id        String   @id @default(uuid())
-  clerkId   String   @unique
-  email     String   @unique
-  firstName String
-  lastName  String
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  workspaces       Workspace[]
-  workspaceMember  WorkspaceMember[]
-  ownedProjects    Project[]        @relation("ProjectOwner")
-  assignedTasks    Task[]           @relation("TaskAssignee")
-  createdTasks     Task[]           @relation("TaskCreator")
-  activityLogs     ActivityLog[]
+  id              String            @id @default(uuid())
+  clerkId         String            @unique
+  email           String            @unique
+  firstName       String
+  lastName        String
+  imageUrl        String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  activityLogs    ActivityLog[]
+  sentInvitations Invitation[]      @relation("InvitationCreator")
+  ownedProjects   Project[]         @relation("ProjectOwner")
+  assignedTasks   Task[]            @relation("TaskAssignee")
+  createdTasks    Task[]            @relation("TaskCreator")
+  workspaces      Workspace[]
+  workspaceMember WorkspaceMember[]
+  comments        Comment[]
+  mentions        Mention[]
+  assignedBugs    Bug[]             @relation("BugAssignee")
+  reportedBugs    Bug[]             @relation("BugReporter")
 }
 
 model Workspace {
-  id          String   @id @default(uuid())
+  id          String            @id @default(uuid())
   name        String
   description String?
   imageUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   createdBy   String
-  user        User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-
-  members  WorkspaceMember[]
-  projects Project[]
+  invitations Invitation[]
+  projects    Project[]
+  user        User              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  members     WorkspaceMember[]
 }
 
 model WorkspaceMember {
@@ -55,29 +53,42 @@ model WorkspaceMember {
   status      MemberStatus @default(ACTIVE)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, userId])
 }
 
+model Invitation {
+  id          String     @id @default(uuid())
+  email       String
+  workspaceId String
+  role        MemberRole @default(MEMBER)
+  status      String     @default("PENDING")
+  token       String     @unique
+  expiresAt   DateTime
+  createdAt   DateTime   @default(now())
+  createdBy   String
+  inviter     User       @relation("InvitationCreator", fields: [createdBy], references: [id])
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
 model Project {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   name        String
   description String?
-  status      String   @default("active")
+  status      String     @default("active")
   workspaceId String
   ownerId     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  owner     User      @relation("ProjectOwner", fields: [ownerId], references: [id])
-  
-  sprints   Sprint[]
-  tasks     Task[]
-  documents Document[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  documents   Document[]
+  owner       User       @relation("ProjectOwner", fields: [ownerId], references: [id])
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sprints     Sprint[]
+  tasks       Task[]
+  workflows   Workflow[]
+  bugs        Bug[]
 }
 
 model Sprint {
@@ -86,34 +97,33 @@ model Sprint {
   description String?
   startDate   DateTime
   endDate     DateTime
-  status      String   @default("planned") // planned, active, completed
+  status      String   @default("planned")
   projectId   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tasks   Task[]
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks       Task[]
 }
 
 model Task {
-  id          String    @id @default(uuid())
+  id          String       @id @default(uuid())
   title       String
   description String?
-  status      String    @default("todo") // todo, in-progress, review, done
-  priority    String    @default("medium") // low, medium, high
+  status      String       @default("todo")
+  priority    String       @default("medium")
   dueDate     DateTime?
   projectId   String
   sprintId    String?
   assigneeId  String?
   creatorId   String
-  type        String    @default("feature") // feature, bug, task
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  sprint   Sprint?  @relation(fields: [sprintId], references: [id])
-  assignee User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  creator  User     @relation("TaskCreator", fields: [creatorId], references: [id])
+  type        String       @default("feature")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  assignee    User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator     User         @relation("TaskCreator", fields: [creatorId], references: [id])
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprint      Sprint?      @relation(fields: [sprintId], references: [id])
+  comments    Comment[]
 }
 
 model Document {
@@ -124,20 +134,92 @@ model Document {
   fileUrl   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model ActivityLog {
   id          String   @id @default(uuid())
-  entityId    String   // ID of the entity this activity is related to
-  entityType  String   // Type of entity (Project, Task, etc.)
-  action      String   // created, updated, deleted, etc.
+  entityId    String
+  entityType  String
+  action      String
   description String
   userId      String
   createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
 
-  user User @relation(fields: [userId], references: [id])
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  steps       Json?
+  status      String   @default("active")
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+  id          String       @id @default(uuid())
+  content     String
+  taskId      String
+  authorId    String
+  parentId    String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  task        Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent      Comment?     @relation("CommentThread", fields: [parentId], references: [id], onDelete: SetNull)
+  replies     Comment[]    @relation("CommentThread")
+  attachments Attachment[]
+  mentions    Mention[]
+}
+
+model Attachment {
+  id          String   @id @default(uuid())
+  filename    String
+  contentType String
+  key         String   @unique
+  size        Int
+  commentId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  comment     Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+}
+
+model Mention {
+  id        String   @id @default(uuid())
+  userId    String
+  commentId String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+}
+
+model Bug {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  status      BugStatus @default(OPEN)
+  priority    BugPriority @default(MEDIUM)
+  severity    BugSeverity @default(MEDIUM)
+  stepsToReproduce String?
+  environment String?
+  browserInfo String?
+  operatingSystem String?
+  projectId   String
+  assigneeId  String?
+  reporterId  String
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee    User?     @relation("BugAssignee", fields: [assigneeId], references: [id])
+  reporter    User      @relation("BugReporter", fields: [reporterId], references: [id])
 }
 
 enum MemberRole {
@@ -149,4 +231,27 @@ enum MemberStatus {
   ACTIVE
   INVITED
   REMOVED
+}
+
+enum BugStatus {
+  OPEN
+  IN_PROGRESS
+  FIXED
+  VERIFIED
+  CLOSED
+  REOPENED
+}
+
+enum BugPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BugSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }

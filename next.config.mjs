@@ -3,7 +3,11 @@ const nextConfig = {
   // Allow static HTML export when env var is set (used for CI builds)
   output: process.env.CI ? 'export' : undefined,
   // Disable image optimization during static export
-  images: process.env.CI ? { unoptimized: true } : {},
+  images: process.env.CI 
+    ? { unoptimized: true } 
+    : { 
+        domains: ['flowbite.s3.amazonaws.com'],
+      },
   // For CI environments, minimize webpack optimization to prevent issues
   webpack: (config, { isServer }) => {
     if (process.env.CI) {
@@ -32,8 +36,13 @@ const nextConfig = {
           }
         }
 
-        // Ignore tailwind.config.ts file
-        config.resolve.alias['tailwindcss'] = false;
+        // More aggressive handling of tailwind modules
+        config.resolve.alias = {
+          ...config.resolve.alias,
+          'tailwindcss': require.resolve('path').join(process.cwd(), 'empty-module.js'),
+          'tailwindcss/lib/util/createUtilityPlugin': require.resolve('path').join(process.cwd(), 'empty-module.js'),
+          'tailwindcss/resolveConfig': require.resolve('path').join(process.cwd(), 'empty-module.js'),
+        };
       }
     }
     return config;

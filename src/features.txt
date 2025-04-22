@@ -1,0 +1,54 @@
+# TaskFlow - Implemented Features
+
+## Phase 1: Foundation
+
+### Authentication System
+- User signup and login with Clerk authentication
+- User profiles with personal information
+- Role-based access control (Admin, Member)
+- Social login options
+
+### Landing Page
+- Responsive landing page
+- Simple navigation structure
+
+## Phase 2: Core Features
+
+### Workspace & Team Management
+- Create and manage workspaces
+- Workspace overview with basic information
+- Team member invitation system
+  - Email-based invitations
+  - Role assignment (Admin, Member)
+- Role-based permissions
+  - Owners can delete workspaces and manage all settings
+  - Admins can invite members and modify workspace settings
+  - Members have read-only access to workspace settings
+- Team member management
+  - View all team members in a workspace
+  - Change member roles (for Admins and Owners)
+  - Remove team members from workspaces
+- Workspace settings management
+  - Update workspace name and description
+  - Delete workspace (owner only)
+
+## Next Steps
+
+### Project Management Basics (In Progress)
+- Create projects with custom fields
+- Basic Kanban board implementation
+- Task creation and assignment
+- Due dates and priority settings
+
+### Sprint Management (Planned)
+- Sprint creation and planning
+- Task allocation to sprints
+- Sprint progress tracking
+- Sprint retrospective templates
+
+## Technical Implementation Notes
+- Built with Next.js App Router and TypeScript
+- Responsive UI with Tailwind CSS
+- Authentication handled by Clerk
+- Database using PostgreSQL with Prisma ORM
+- Mock data used for initial development, to be replaced with actual API calls 
