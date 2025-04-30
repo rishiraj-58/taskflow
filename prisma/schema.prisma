@@ -19,16 +19,16 @@ model User {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   activityLogs    ActivityLog[]
+  assignedBugs    Bug[]             @relation("BugAssignee")
+  reportedBugs    Bug[]             @relation("BugReporter")
+  comments        Comment[]
   sentInvitations Invitation[]      @relation("InvitationCreator")
+  mentions        Mention[]
   ownedProjects   Project[]         @relation("ProjectOwner")
   assignedTasks   Task[]            @relation("TaskAssignee")
   createdTasks    Task[]            @relation("TaskCreator")
   workspaces      Workspace[]
   workspaceMember WorkspaceMember[]
-  comments        Comment[]
-  mentions        Mention[]
-  assignedBugs    Bug[]             @relation("BugAssignee")
-  reportedBugs    Bug[]             @relation("BugReporter")
 }
 
 model Workspace {
@@ -82,13 +82,14 @@ model Project {
   ownerId     String
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  bugs        Bug[]
   documents   Document[]
   owner       User       @relation("ProjectOwner", fields: [ownerId], references: [id])
   workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  roadmaps    Roadmap[]
   sprints     Sprint[]
   tasks       Task[]
   workflows   Workflow[]
-  bugs        Bug[]
 }
 
 model Sprint {
@@ -106,24 +107,24 @@ model Sprint {
 }
 
 model Task {
-  id          String       @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
-  status      String       @default("todo")
-  priority    String       @default("medium")
+  status      String    @default("todo")
+  priority    String    @default("medium")
   dueDate     DateTime?
   projectId   String
   sprintId    String?
   assigneeId  String?
   creatorId   String
-  type        String       @default("feature")
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  assignee    User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  creator     User         @relation("TaskCreator", fields: [creatorId], references: [id])
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  sprint      Sprint?      @relation(fields: [sprintId], references: [id])
+  type        String    @default("feature")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   comments    Comment[]
+  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator     User      @relation("TaskCreator", fields: [creatorId], references: [id])
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprint      Sprint?   @relation(fields: [sprintId], references: [id])
 }
 
 model Document {
@@ -168,11 +169,11 @@ model Comment {
   parentId    String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  task        Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  parent      Comment?     @relation("CommentThread", fields: [parentId], references: [id], onDelete: SetNull)
-  replies     Comment[]    @relation("CommentThread")
   attachments Attachment[]
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent      Comment?     @relation("CommentThread", fields: [parentId], references: [id])
+  replies     Comment[]    @relation("CommentThread")
+  task        Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
   mentions    Mention[]
 }
 
@@ -194,32 +195,87 @@ model Mention {
   commentId String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, commentId])
 }
 
 model Bug {
-  id          String    @id @default(uuid())
-  title       String
-  description String?
-  status      BugStatus @default(OPEN)
-  priority    BugPriority @default(MEDIUM)
-  severity    BugSeverity @default(MEDIUM)
+  id               String      @id @default(uuid())
+  title            String
+  description      String?
+  status           BugStatus   @default(OPEN)
+  priority         BugPriority @default(MEDIUM)
+  severity         BugSeverity @default(MEDIUM)
   stepsToReproduce String?
-  environment String?
-  browserInfo String?
-  operatingSystem String?
+  environment      String?
+  browserInfo      String?
+  operatingSystem  String?
+  projectId        String
+  assigneeId       String?
+  reporterId       String
+  dueDate          DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  assignee         User?       @relation("BugAssignee", fields: [assigneeId], references: [id])
+  project          Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reporter         User        @relation("BugReporter", fields: [reporterId], references: [id])
+}
+
+model Roadmap {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
   projectId   String
-  assigneeId  String?
-  reporterId  String
-  dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee    User?     @relation("BugAssignee", fields: [assigneeId], references: [id])
-  reporter    User      @relation("BugReporter", fields: [reporterId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  milestones  Milestone[]
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Milestone {
+  id           String           @id @default(uuid())
+  name         String
+  description  String?
+  startDate    DateTime
+  endDate      DateTime
+  status       MilestoneStatus  @default(PLANNED)
+  roadmapId    String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  dependencies DependencyLink[] @relation("SourceMilestone")
+  dependents   DependencyLink[] @relation("TargetMilestone")
+  features     Feature[]
+  roadmap      Roadmap          @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+}
+
+model Feature {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  priority    FeaturePriority @default(MEDIUM)
+  status      FeatureStatus   @default(PLANNED)
+  milestoneId String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  milestone   Milestone       @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+}
+
+model DependencyLink {
+  id                String         @id @default(uuid())
+  sourceMilestoneId String
+  targetMilestoneId String
+  type              DependencyType @default(BLOCKS)
+  description       String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  sourceMilestone   Milestone      @relation("SourceMilestone", fields: [sourceMilestoneId], references: [id], onDelete: Cascade)
+  targetMilestone   Milestone      @relation("TargetMilestone", fields: [targetMilestoneId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceMilestoneId, targetMilestoneId])
 }
 
 enum MemberRole {
@@ -254,4 +310,33 @@ enum BugSeverity {
   MEDIUM
   HIGH
   CRITICAL
+}
+
+enum MilestoneStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  DELAYED
+  CANCELLED
+}
+
+enum FeatureStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  DEFERRED
+  CANCELLED
+}
+
+enum FeaturePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum DependencyType {
+  BLOCKS
+  REQUIRED_BY
+  RELATED_TO
 }

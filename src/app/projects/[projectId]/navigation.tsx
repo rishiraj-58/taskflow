@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { CalendarDaysIcon, CheckCircleIcon, ClipboardListIcon, LayoutDashboardIcon, ListChecksIcon, UsersIcon, Bug } from "lucide-react";
+import { CalendarDaysIcon, CheckCircleIcon, ClipboardListIcon, LayoutDashboardIcon, ListChecksIcon, UsersIcon, Bug, FileText } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -40,6 +40,11 @@ export default function ProjectNavigation() {
       title: "Bugs",
       href: `/projects/${projectId}/bugs`,
       icon: Bug,
+    },
+    {
+      title: "Documents",
+      href: `/projects/${projectId}/documents`,
+      icon: FileText,
     },
     {
       title: "Members",

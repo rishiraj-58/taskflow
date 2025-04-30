@@ -268,8 +268,11 @@ export default function CreateBugModal({
                   <FormItem>
                     <FormLabel>Assign To</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
+                      onValueChange={(value) => {
+                        // Convert "unassigned" back to undefined for the database
+                        field.onChange(value === "unassigned" ? undefined : value);
+                      }}
+                      defaultValue={field.value || "unassigned"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -277,10 +280,10 @@ export default function CreateBugModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Unassigned</SelectItem>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
                         {projectMembers.map((member) => (
                           <SelectItem key={member.id} value={member.id}>
-                            {member.name}
+                            {member.name || member.email}
                           </SelectItem>
                         ))}
                       </SelectContent>

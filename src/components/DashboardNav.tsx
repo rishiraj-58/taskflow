@@ -16,7 +16,8 @@ import {
   Users,
   CheckSquare,
   LayoutGrid,
-  Settings
+  Settings,
+  Map
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { 
@@ -54,6 +55,7 @@ export default function DashboardNav() {
     { name: "Workspaces", href: "/workspaces", icon: <LayoutGrid className="h-4 w-4 mr-2" /> },
     { name: "Projects", href: "/projects", icon: <FolderOpen className="h-4 w-4 mr-2" /> },
     { name: "Tasks", href: "/tasks", icon: <CheckSquare className="h-4 w-4 mr-2" /> },
+    { name: "Roadmap", href: "/roadmap", icon: <Map className="h-4 w-4 mr-2" /> },
     { name: "Team", href: "/team", icon: <Users className="h-4 w-4 mr-2" /> },
   ];
   

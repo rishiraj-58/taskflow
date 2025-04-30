@@ -333,8 +333,11 @@ export default function EditBugModal({
                   <FormItem>
                     <FormLabel>Assign To</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value || ""}
+                      onValueChange={(value) => {
+                        // Convert "unassigned" back to null for the database
+                        field.onChange(value === "unassigned" ? null : value);
+                      }}
+                      value={field.value || "unassigned"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -342,10 +345,10 @@ export default function EditBugModal({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Unassigned</SelectItem>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
                         {projectMembers.map((member) => (
                           <SelectItem key={member.id} value={member.id}>
-                            {member.name}
+                            {member.name || member.email}
                           </SelectItem>
                         ))}
                       </SelectContent>
