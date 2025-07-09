@@ -12,6 +12,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
 
 interface Task {
   id: string;
@@ -167,10 +168,13 @@ export function TaskList({ projectId }: TaskListProps) {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="flex justify-between">
-          <Skeleton className="h-10 w-[200px]" />
-          <Skeleton className="h-10 w-[200px]" />
+      <div className="space-y-6 animate-pulse">
+        <div className="flex flex-wrap justify-between bg-card/50 p-4 rounded-md border shadow-sm">
+          <Skeleton className="h-10 w-[180px] mr-2" />
+          <Skeleton className="h-10 w-[180px] mr-2" />
+          <Skeleton className="h-10 w-[180px] mr-2" />
+          <Skeleton className="h-10 w-[180px] mr-2" />
+          <Skeleton className="h-10 w-[180px]" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -183,7 +187,7 @@ export function TaskList({ projectId }: TaskListProps) {
 
   if (error) {
     return (
-      <Alert variant="destructive">
+      <Alert variant="destructive" className="animate-scaleIn">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>
@@ -193,12 +197,23 @@ export function TaskList({ projectId }: TaskListProps) {
     );
   }
 
-  if (filteredAndSortedTasks.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-4 mb-6">
+  const getFilterCount = () => {
+    let count = 0;
+    if (filterStatus !== "all") count++;
+    if (filterPriority !== "all") count++;
+    if (filterType !== "all") count++;
+    if (filterAssignee !== "all") count++;
+    return count;
+  };
+
+  const activeFilterCount = getFilterCount();
+
+  return (
+    <div className="space-y-6 animate-fadeIn">
+      <Card className="bg-card/50 border shadow-sm p-4 rounded-md">
+        <div className="flex flex-wrap gap-4 items-center">
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-background/80 backdrop-blur-sm">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -211,7 +226,7 @@ export function TaskList({ projectId }: TaskListProps) {
           </Select>
 
           <Select value={filterPriority} onValueChange={setFilterPriority}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-background/80 backdrop-blur-sm">
               <SelectValue placeholder="Filter by priority" />
             </SelectTrigger>
             <SelectContent>
@@ -224,7 +239,7 @@ export function TaskList({ projectId }: TaskListProps) {
           </Select>
 
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-background/80 backdrop-blur-sm">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
@@ -238,7 +253,7 @@ export function TaskList({ projectId }: TaskListProps) {
           </Select>
 
           <Select value={filterAssignee} onValueChange={setFilterAssignee}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-background/80 backdrop-blur-sm">
               <SelectValue placeholder="Filter by assignee" />
             </SelectTrigger>
             <SelectContent>
@@ -253,7 +268,7 @@ export function TaskList({ projectId }: TaskListProps) {
           </Select>
 
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-background/80 backdrop-blur-sm">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -262,100 +277,59 @@ export function TaskList({ projectId }: TaskListProps) {
               <SelectItem value="priority">Priority</SelectItem>
             </SelectContent>
           </Select>
+          
+          {activeFilterCount > 0 && (
+            <div className="text-sm text-muted-foreground ml-auto">
+              <span className="bg-primary/10 text-primary px-2 py-1 rounded-full">
+                {activeFilterCount} active filter{activeFilterCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
         </div>
+      </Card>
 
-        <div className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-lg border border-dashed">
-          <h3 className="text-lg font-medium">No tasks found</h3>
-          <p className="text-sm text-muted-foreground mt-1">
+      {filteredAndSortedTasks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 bg-muted/50 rounded-lg border border-dashed shadow-sm animate-scaleIn">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <AlertCircle className="h-8 w-8 text-primary/70" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">No tasks found</h3>
+          <p className="text-sm text-muted-foreground text-center max-w-md">
             {tasks.length === 0 
-              ? "There are no tasks in this project yet." 
-              : "No tasks match your current filters."}
+              ? "There are no tasks in this project yet. Create your first task to get started." 
+              : "No tasks match your current filters. Try changing or clearing some filters."}
           </p>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-4 mb-6">
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="todo">To Do</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="review">In Review</SelectItem>
-            <SelectItem value="done">Done</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filterPriority} onValueChange={setFilterPriority}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by priority" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Priorities</SelectItem>
-            <SelectItem value="urgent">Urgent</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="bug">Bug</SelectItem>
-            <SelectItem value="feature">Feature</SelectItem>
-            <SelectItem value="improvement">Improvement</SelectItem>
-            <SelectItem value="task">Task</SelectItem>
-            <SelectItem value="documentation">Documentation</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filterAssignee} onValueChange={setFilterAssignee}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by assignee" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Assignees</SelectItem>
-            <SelectItem value="unassigned">Unassigned</SelectItem>
-            {projectMembers.map(member => (
-              <SelectItem key={member.id} value={member.id}>
-                {member.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="updatedAt">Last Updated</SelectItem>
-            <SelectItem value="dueDate">Due Date</SelectItem>
-            <SelectItem value="priority">Priority</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredAndSortedTasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            projectId={projectId}
-            onStatusChange={handleStatusChange}
-          />
-        ))}
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAndSortedTasks.map((task, index) => (
+            <div key={task.id} 
+              className="animate-fadeIn transform transition-all duration-300 hover:-translate-y-1"
+              style={{animationDelay: `${index * 50}ms`}}
+            >
+              <TaskCard
+                task={task}
+                projectId={projectId}
+                onStatusChange={handleStatusChange}
+                className="h-full shadow-sm hover:shadow-md transition-shadow border-t-4"
+                style={{
+                  borderTopColor: 
+                    task.priority === 'urgent' ? 'var(--red-600)' :
+                    task.priority === 'high' ? 'var(--orange-600)' :
+                    task.priority === 'medium' ? 'var(--blue-600)' :
+                    'var(--gray-400)'
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {filteredAndSortedTasks.length > 0 && (
+        <div className="text-sm text-muted-foreground text-center pt-2 pb-4">
+          Showing {filteredAndSortedTasks.length} of {tasks.length} tasks
+        </div>
+      )}
     </div>
   );
 } 

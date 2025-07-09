@@ -78,6 +78,7 @@ model Project {
   name        String
   description String?
   status      String     @default("active")
+  archived    Boolean    @default(false)
   workspaceId String
   ownerId     String
   createdAt   DateTime   @default(now())

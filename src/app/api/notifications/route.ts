@@ -20,6 +20,8 @@ export async function GET(request: Request) {
     }
 
     // Get all mentions for the user
+    console.log(`Fetching notifications for user: ${dbUser.id}`);
+    
     const mentions = await prisma.mention.findMany({
       where: { 
         userId: dbUser.id,
@@ -51,6 +53,8 @@ export async function GET(request: Request) {
         createdAt: 'desc'
       }
     });
+
+    console.log(`Found ${mentions.length} unread mentions for user ${dbUser.id}`);
 
     return NextResponse.json(mentions);
   } catch (error) {

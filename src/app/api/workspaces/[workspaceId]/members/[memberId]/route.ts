@@ -23,12 +23,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if the current user is an admin or owner of the workspace
+    // Check if the current user is an admin of the workspace
     const currentUserMembership = await prisma.workspaceMember.findFirst({
       where: {
         workspaceId,
         userId: dbUser.id,
-        role: { in: ['ADMIN', 'OWNER'] },
+        role: 'ADMIN',
       },
     });
 
@@ -44,13 +44,6 @@ export async function DELETE(
 
     if (!memberToRemove) {
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
-    }
-
-    // Check if trying to remove an owner (only another owner can remove an owner)
-    if (memberToRemove.role === 'OWNER' && currentUserMembership.role !== 'OWNER') {
-      return NextResponse.json({ 
-        error: 'You do not have permission to remove an owner' 
-      }, { status: 403 });
     }
 
     // Don't allow removing yourself

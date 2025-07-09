@@ -169,13 +169,56 @@ TaskFlow is a comprehensive project management tool aimed at solving the pain po
     16.4. Documentation completion
     16.5. Onboarding tutorials and tooltips
 
+### Phase 6: AI-Powered Features (Weeks 15-18)
+17. **Natural Language Task Management**
+    17.1. Task creation from natural language commands (e.g., "Create a bug task assigned to Rohan due next Friday about login failure")
+    17.2. Bulk task updates via text commands (e.g., "Move all UI-related tasks to Sprint 3")
+    17.3. AI-powered subtask generation (e.g., "Generate 5 sub-tasks for onboarding module")
+    17.4. Natural language search and filtering
+    17.5. Command history and templates
+
+18. **Sprint & Planning Automation**
+    18.1. AI-assisted sprint planning (e.g., "Plan next sprint from current backlog")
+    18.2. Sprint progress summarization (e.g., "Summarize Sprint 5 progress")
+    18.3. Automatic roadmap generation from tasks (e.g., "Create a roadmap for Q3 from current tasks")
+    18.4. Team workload balancing recommendations
+    18.5. Sprint capacity optimization suggestions
+
+19. **Task & Content Enhancement**
+    19.1. Bug description improvements (e.g., "Explain this bug in better words")
+    19.2. Auto-generated acceptance criteria
+    19.3. Task description enhancement
+    19.4. Automatic tagging and categorization
+    19.5. Content quality suggestions
+
+20. **AI Assistant & Analytics**
+    20.1. Project assistant chatbot (e.g., "What changed in Project X last week?")
+    20.2. Workspace analytics via natural language (e.g., "How many tasks are overdue in Workspace Alpha?")
+    20.3. Team performance insights (e.g., "Who is overloaded with tasks?")
+    20.4. Predictive analytics for project timelines
+    20.5. Natural language report generation
+
+21. **Documentation & Knowledge Management**
+    21.1. Auto-generated documentation from tasks and features
+    21.2. Discussion and comment summarization
+    21.3. Knowledge extraction from project artifacts
+    21.4. Automated release notes generation
+    21.5. Context-aware documentation suggestions
+
+22. **Smart Notifications & Recommendations**
+    22.1. Customizable smart notification rules (e.g., "Remind me if any high priority task is due in 2 days")
+    22.2. Team alert configurations (e.g., "Notify team if no one is assigned to a new bug within 12 hours")
+    22.3. AI-powered suggestions panel with actionable insights
+    22.4. Task breakdown recommendations (e.g., "Consider breaking this task into subtasks")
+    22.5. Sprint and workload balancing alerts
+
 ## Maintenance & Ongoing Development
-17. **Post-Launch Activities**
-    17.1. User feedback collection
-    17.2. Bug fixes and improvements
-    17.3. Feature enhancements
-    17.4. Regular security updates
-    17.5. Performance monitoring
+23. **Post-Launch Activities**
+    23.1. User feedback collection
+    23.2. Bug fixes and improvements
+    23.3. Feature enhancements
+    23.4. Regular security updates
+    23.5. Performance monitoring
 
 ## MVP Definition
 For the initial launch, focus on completing Phases 1-3, which will provide a functional project management tool with the core features needed by development teams. This includes:
@@ -192,6 +235,107 @@ Based on current progress, focus on these areas next:
 2. **Enhanced User Roles & Permissions** - Expand role-based access control
 3. **Activity Logging** - Implement comprehensive audit trails
 4. **Workspace Customization** - Allow users to personalize their workspace with branding
+
+## AI Features Roadmap (Next Generation)
+After completing the core functionality and addressing critical bugs, the next evolution of TaskFlow will focus on AI-powered automation and assistance:
+
+1. **Natural Language Interface** - Allow users to interact with the system using plain English commands
+2. **Intelligent Automation** - Streamline workflows with AI-driven automation of routine tasks
+3. **Predictive Insights** - Leverage historical data to provide predictive analytics and proactive suggestions
+4. **Content Enhancement** - Improve user-generated content with AI-assisted editing and formatting
+5. **Smart Notifications** - Deliver timely and relevant notifications based on user behavior and project context
+
+## Comprehensive AI Features Implementation
+
+### AI Implementation Approach
+Our AI assistant will use a middleware logic layer rather than purely text-based responses:
+
+1. **User Message Flow:**
+   - User enters a natural language request (e.g., "Show me tasks in Sprint 2")
+   - AI parses the request and returns structured action data:
+   ```json
+   {
+     "type": "FIND_TASKS",
+     "parameters": {
+       "sprintId": "abc123",
+       "projectId": "taskflow123"
+     }
+   }
+   ```
+   - Backend logic processes the action type and parameters
+   - System performs actual database/API queries
+   - Results are formatted and returned to the user
+
+2. **Integration Components:**
+   - Action router that maps AI action types to API endpoints
+   - Parameter validator for security and data integrity
+   - Context manager for maintaining conversation state
+   - Response formatter for consistent user experience
+
+### Core TaskFlow AI Actions
+
+#### Workspace & Project Context
+- **GET_WORKSPACES** - List all workspaces the user is part of
+- **GET_PROJECTS** - List projects in a selected workspace
+- **SELECT_PROJECT** - Set active project for future commands
+
+#### Tasks Management
+- **FIND_TASKS** - Show tasks based on status, date range, priority, sprint, assignee
+- **CREATE_TASK** - Add a new task via natural language prompt
+- **UPDATE_TASK** - Change title, status, assignee, due date, etc.
+- **MOVE_TASK** - Move a task to a different sprint or column
+- **GENERATE_SUBTASKS** - Break a task into smaller subtasks
+
+#### Sprint Management
+- **LIST_SPRINTS** - List all sprints in a project
+- **GET_SPRINT_DETAILS** - Show a sprint's progress and status
+- **SUMMARIZE_SPRINT** - Give a smart overview of task counts, velocity, blockers
+
+#### Bug Tracking
+- **LIST_BUGS** - Get list of current open bugs
+- **CREATE_BUG** - Add new bug ticket via prompt
+- **ASSIGN_BUG** - Assign to someone based on load/priority
+
+#### Files & Documents
+- **LIST_FILES** - List all uploaded files in the project
+- **UPLOAD_FILE** - Trigger file upload (show file picker)
+- **DELETE_FILE** - Delete or archive files
+
+#### Insights & Reports
+- **TEAM_SUMMARY** - Who's doing what? Who is overloaded?
+- **TASK_PROGRESS_SUMMARY** - % completed, due soon, overdue
+- **DAILY_SUMMARY** - "What changed today?"
+- **SUGGEST_SPRINT_PLANNING** - AI recommends what to move into next sprint
+
+#### Smart Prompts
+- **ENHANCE_TASK_DESCRIPTION** - Improve the text of a task
+- **WRITE_ACCEPTANCE_CRITERIA** - Generate criteria for feature completion
+- **AUTOTAG_TASK** - Suggest tags based on content
+
+#### Date-Based Queries
+- Support for relative time references: "today", "yesterday", "this week", "next week"
+- Complex queries like "What changed in the past 3 days?"
+- Date-specific queries like "Show tasks completed before May 5th"
+
+#### Future AI Features (Planned)
+- **USER_FEEDBACK_SUMMARY** - Summarize user feedback from multiple tasks
+- **AUTOMATED_RELEASE_NOTES** - Write release summary based on sprint contents
+- **MEETING_RECAP_GENERATOR** - Summarize notes + tasks from a meeting transcript
+
+### Context-Aware Behavior
+The AI assistant will be designed to:
+- Ask follow-up questions only when essential context is missing
+- Present actual options from the database for user selection
+- Remember context throughout the conversation
+- Interpret ambiguous terms based on project context
+- Provide intelligent error recovery if commands can't be executed
+
+### Technical Implementation Details
+- System prompt contains actual project schema
+- Integration with Prisma for database calls
+- Real-time verification of context
+- Error handling with fallback options
+- Date processing for relative time references
 
 ## Development Guidelines
 1. **Mobile-First Approach**: Ensure all features work seamlessly on mobile devices

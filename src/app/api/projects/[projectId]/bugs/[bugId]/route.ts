@@ -151,14 +151,18 @@ export async function PATCH(
       where: {
         id: bugId,
       },
-      data: {
-        ...updatedData,
-        ...(updatedData.assigneeId === null 
-          ? { assignee: { disconnect: true } } 
-          : updatedData.assigneeId 
-            ? { assignee: { connect: { id: updatedData.assigneeId } } } 
-            : {}),
-      },
+      data: updatedData.assigneeId === null 
+        ? { 
+            ...updatedData,
+            assigneeId: null 
+          }
+        : updatedData.assigneeId 
+          ? { 
+              ...updatedData
+            }
+          : {
+              ...updatedData
+            },
       include: {
         assignee: {
           select: {

@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-
-// Simple validation schema for theme color
-const themeColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, {
-  message: "Theme color must be a valid hex color code (e.g., #7c3aed)",
-});
 
 export async function PUT(
   request: NextRequest,
@@ -27,7 +21,10 @@ export async function PUT(
     // Verify workspace exists and user has permission
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
         members: {
           where: {
             user: {
@@ -52,61 +49,45 @@ export async function PUT(
       );
     }
 
-    // Get form data from the request
+    // Extract form data
     const formData = await request.formData();
-    const themeColor = formData.get("themeColor") as string;
     const removeLogo = formData.get("removeLogo") === "true";
-    const logoFile = formData.get("logo") as File | null;
-
-    // Validate theme color
-    try {
-      themeColorSchema.parse(themeColor);
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid theme color format" },
-        { status: 400 }
-      );
-    }
-
-    // Handle logo upload
-    let logoUrl: string | null = workspace.logoUrl;
-
-    if (logoFile) {
-      // This is where you would typically upload the file to a storage service
-      // For example, using AWS S3, Cloudinary, Supabase Storage, etc.
-      // For now, we'll just simulate the upload with a placeholder URL
-      
+    const file = formData.get("file") as File | null;
+    
+    // Process the uploaded file or removal request
+    let imageUrl: string | null = workspace.imageUrl;
+    
+    if (removeLogo) {
+      imageUrl = null;
+    } else if (file) {
       // Validate file type
-      if (!["image/jpeg", "image/png", "image/svg+xml"].includes(logoFile.type)) {
+      const validTypes = ["image/jpeg", "image/png", "image/svg+xml"];
+      if (!validTypes.includes(file.type)) {
         return NextResponse.json(
-          { error: "Invalid file type. Only JPEG, PNG, and SVG are supported." },
+          { error: "Invalid file type. Only JPEG, PNG, and SVG are allowed." },
           { status: 400 }
         );
       }
       
-      // Validate file size (5MB max)
-      if (logoFile.size > 5 * 1024 * 1024) {
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
         return NextResponse.json(
-          { error: "File too large. Maximum size is 5MB." },
+          { error: "File size exceeds 5MB limit." },
           { status: 400 }
         );
       }
       
-      // Simulated upload - in a real app, you would upload to a storage service and get a URL
-      logoUrl = `https://example.com/logos/${workspaceId}-${Date.now()}.${logoFile.name.split('.').pop()}`;
-      
-      console.log("Logo file received:", logoFile.name, logoFile.type, logoFile.size);
-    } else if (removeLogo) {
-      // Remove the logo if requested
-      logoUrl = null;
+      // In a real implementation, you would upload the file to a storage service
+      // and get back a URL. For this example, we'll simulate this.
+      imageUrl = `https://example.com/logos/${workspaceId}-${file.name}`;
     }
 
     // Update the workspace with the new customization
     const updatedWorkspace = await prisma.workspace.update({
       where: { id: workspaceId },
       data: {
-        themeColor,
-        logoUrl,
+        imageUrl,
       },
     });
 
@@ -115,8 +96,7 @@ export async function PUT(
       workspace: {
         id: updatedWorkspace.id,
         name: updatedWorkspace.name,
-        themeColor: updatedWorkspace.themeColor,
-        logoUrl: updatedWorkspace.logoUrl,
+        logoUrl: updatedWorkspace.imageUrl,
       },
     });
   } catch (error) {

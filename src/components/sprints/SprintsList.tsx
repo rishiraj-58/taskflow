@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,7 @@ interface Sprint {
   completedTasks: number;
   totalTasks: number;
   projectId: string;
+  status: string;
 }
 
 interface SprintsListProps {
@@ -32,31 +33,61 @@ export function SprintsList({ projectId }: SprintsListProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchSprints = useCallback(async (showLoading = true) => {
+    try {
+      if (showLoading) {
+        setIsLoading(true);
+      }
+      
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/projects/${projectId}/sprints?_=${timestamp}`, {
+        cache: 'no-store'
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch sprints");
+      }
+      
+      const data = await response.json();
+      
+      const processedData = data.map((sprint: any) => ({
+        ...sprint,
+        completedTasks: typeof sprint.completedTasks === 'number' ? sprint.completedTasks : 0,
+        totalTasks: typeof sprint.totalTasks === 'number' ? sprint.totalTasks : 0,
+        status: sprint.status || getSprintStatus(sprint)
+      }));
+      
+      setSprints(processedData);
+    } catch (error) {
+      console.error("Error fetching sprints:", error);
+      setError("Failed to load sprints. Please try again.");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [projectId]);
 
   useEffect(() => {
-    const fetchSprints = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/projects/${projectId}/sprints`);
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch sprints");
-        }
-        
-        const data = await response.json();
-        setSprints(data);
-      } catch (error) {
-        console.error("Error fetching sprints:", error);
-        setError("Failed to load sprints. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (projectId) {
       fetchSprints();
     }
-  }, [projectId]);
+  }, [projectId, fetchSprints]);
+
+  useEffect(() => {
+    const handleSprintUpdate = (event: any) => {
+      if (event.detail && event.detail.projectId === projectId) {
+        fetchSprints(false);
+      }
+    };
+
+    window.addEventListener('sprint-data-updated', handleSprintUpdate);
+    
+    return () => {
+      window.removeEventListener('sprint-data-updated', handleSprintUpdate);
+    };
+  }, [projectId, fetchSprints]);
 
   const handleSprintCreated = (newSprint: Sprint) => {
     setSprints((prevSprints) => [...prevSprints, newSprint]);
@@ -161,9 +192,21 @@ export function SprintsList({ projectId }: SprintsListProps) {
                   )}
                   
                   <SprintProgressBar 
-                    completedTasks={sprint.completedTasks} 
-                    totalTasks={sprint.totalTasks} 
+                    completedTasks={sprint.completedTasks || 0} 
+                    totalTasks={sprint.totalTasks || 0} 
                   />
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="text-xs text-gray-500">
+                      {(sprint.totalTasks || 0) === 0 ? (
+                        <span>No tasks</span>
+                      ) : (
+                        <span>
+                          {sprint.completedTasks || 0} of {sprint.totalTasks || 0} tasks completed
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   
                   <div className="flex justify-between text-xs text-gray-500">
                     <div>

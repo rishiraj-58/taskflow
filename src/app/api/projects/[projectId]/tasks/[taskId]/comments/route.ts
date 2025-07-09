@@ -228,12 +228,35 @@ export async function POST(
 
     // Process mentioned users
     if (mentions.length > 0) {
-      await prisma.mention.createMany({
-        data: mentions.map(userId => ({
-          userId,
-          commentId: comment.id
-        }))
+      console.log("Processing mentions:", mentions);
+      
+      // Validate that all mentioned users exist in the database
+      const mentionedUsers = await prisma.user.findMany({
+        where: {
+          OR: [
+            { id: { in: mentions } },
+            { clerkId: { in: mentions } }
+          ]
+        },
+        select: { id: true }
       });
+
+      console.log("Found mentioned users:", mentionedUsers);
+
+      if (mentionedUsers.length > 0) {
+        const mentionData = mentionedUsers.map(user => ({
+          userId: user.id,
+          commentId: comment.id
+        }));
+        
+        console.log("Creating mentions with data:", mentionData);
+        
+        await prisma.mention.createMany({
+          data: mentionData
+        });
+        
+        console.log("Mentions created successfully");
+      }
     }
 
     // Generate upload URLs for attachments

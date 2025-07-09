@@ -218,58 +218,89 @@ export default function TeamPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team Members</h1>
-          <p className="text-muted-foreground">Manage your organization's team members and their access.</p>
+      <div className="relative rounded-xl overflow-hidden mb-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-purple-600/20 animate-gradient"></div>
+        <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm p-6 rounded-xl border border-gray-200 dark:border-gray-800">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="animate-fadeIn">
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-br from-blue-600 to-indigo-600 bg-clip-text text-transparent">Team Members</h1>
+              <p className="text-muted-foreground">Manage your organization's team members and their access.</p>
+            </div>
+            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5 animate-scaleIn">
+              <UserPlus className="h-4 w-4 mr-2" />
+              Invite Team Member
+            </Button>
+          </div>
         </div>
-        <Button>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Invite Team Member
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="md:col-span-1">
-          <CardHeader>
-            <CardTitle>Team Overview</CardTitle>
+        <Card className="md:col-span-1 border-blue-100 dark:border-blue-900/30 shadow-sm hover:shadow-md transition-shadow animate-scaleIn">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <Users className="h-5 w-5 mr-2 text-blue-500" />
+              Team Overview
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Members</span>
-                <Badge variant="outline">{teamMembers.length}</Badge>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between group hover:bg-blue-50/50 dark:hover:bg-blue-900/10 p-2 rounded-md transition-colors">
+                <span className="text-sm text-muted-foreground flex items-center">
+                  <Users className="h-4 w-4 mr-2 text-blue-500 group-hover:animate-pulse" />
+                  Total Members
+                </span>
+                <Badge variant="outline" className="bg-blue-100/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors">
+                  {teamMembers.length}
+                </Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Admins</span>
-                <Badge variant="outline">
+              <div className="flex items-center justify-between group hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 p-2 rounded-md transition-colors">
+                <span className="text-sm text-muted-foreground flex items-center">
+                  <Star className="h-4 w-4 mr-2 text-indigo-500 group-hover:animate-pulse" />
+                  Admins
+                </span>
+                <Badge variant="outline" className="bg-indigo-100/50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 transition-colors">
                   {teamMembers.filter(m => m.role === "ADMIN").length}
                 </Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Members</span>
-                <Badge variant="outline">
+              <div className="flex items-center justify-between group hover:bg-violet-50/50 dark:hover:bg-violet-900/10 p-2 rounded-md transition-colors">
+                <span className="text-sm text-muted-foreground flex items-center">
+                  <Users className="h-4 w-4 mr-2 text-violet-500 group-hover:animate-pulse" />
+                  Members
+                </span>
+                <Badge variant="outline" className="bg-violet-100/50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 hover:bg-violet-100 transition-colors">
                   {teamMembers.filter(m => m.role === "MEMBER").length}
                 </Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Active</span>
-                <Badge variant="outline">
+              <div className="flex items-center justify-between group hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 p-2 rounded-md transition-colors">
+                <span className="text-sm text-muted-foreground flex items-center">
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-500 group-hover:animate-pulse" />
+                  Active
+                </span>
+                <Badge variant="outline" className="bg-emerald-100/50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 transition-colors">
                   {teamMembers.filter(m => m.status === "ACTIVE").length}
                 </Badge>
               </div>
             </div>
 
             <div className="pt-4 border-t">
-              <h3 className="text-sm font-medium mb-3">Workspaces</h3>
+              <h3 className="text-sm font-medium mb-3 flex items-center">
+                <Building className="h-4 w-4 mr-2 text-blue-500" />
+                Workspaces
+              </h3>
               <div className="space-y-2">
-                {workspaces.map(workspace => (
-                  <div key={workspace.id} className="flex items-center justify-between">
+                {workspaces.map((workspace, index) => (
+                  <div 
+                    key={workspace.id} 
+                    className="flex items-center justify-between p-2 rounded-md hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors animate-fadeIn" 
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
                     <div className="flex items-center">
                       <Building className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span className="text-sm truncate max-w-[150px]">{workspace.name}</span>
                     </div>
-                    <Badge variant="outline">{workspace.memberCount || 0}</Badge>
+                    <Badge variant="outline" className="bg-blue-100/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                      {workspace.memberCount || 0}
+                    </Badge>
                   </div>
                 ))}
               </div>
@@ -277,13 +308,28 @@ export default function TeamPage() {
           </CardContent>
         </Card>
 
-        <div className="md:col-span-3 space-y-4">
+        <div className="md:col-span-3 space-y-4 animate-scaleIn" style={{ animationDelay: "100ms" }}>
           <div className="flex flex-col sm:flex-row justify-between gap-4">
             <Tabs defaultValue="all" className="w-full sm:w-auto" onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="admin">Admins</TabsTrigger>
-                <TabsTrigger value="member">Members</TabsTrigger>
+              <TabsList className="bg-muted/70 p-1">
+                <TabsTrigger 
+                  value="all" 
+                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm text-base h-9 px-4 transition-all"
+                >
+                  All
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="admin" 
+                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm text-base h-9 px-4 transition-all"
+                >
+                  Admins
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="member" 
+                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm text-base h-9 px-4 transition-all"
+                >
+                  Members
+                </TabsTrigger>
               </TabsList>
             </Tabs>
             
@@ -292,163 +338,100 @@ export default function TeamPage() {
               <Input
                 type="search"
                 placeholder="Search team members..."
-                className="pl-8"
+                className="pl-8 border-blue-100 dark:border-blue-900/30 focus:border-blue-400 focus:ring focus:ring-blue-300/30 transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
 
-          <Card>
-            <CardContent className="p-0">
-              <div className="grid grid-cols-1 divide-y">
-                {filteredMembers.length > 0 ? (
-                  filteredMembers.map(member => (
-                    <div key={member.id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={member.imageUrl} alt={member.name} />
-                          <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{member.name}</div>
-                          <div className="text-sm text-muted-foreground">{member.email}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 ml-auto">
-                        <div className="flex items-center">
-                          {member.role === "ADMIN" ? (
-                            <Badge className="bg-blue-600">Admin</Badge>
-                          ) : member.role === "OWNER" ? (
-                            <Badge className="bg-purple-600">Owner</Badge>
-                          ) : (
-                            <Badge>Member</Badge>
-                          )}
-                          
-                          {member.status === "ACTIVE" && (
-                            <Badge variant="outline" className="ml-2 text-green-600 border-green-600">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Active
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon">
-                            <Mail className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <MessageSquare className="h-4 w-4" />
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>View Profile</DropdownMenuItem>
-                              <DropdownMenuItem>Edit Permissions</DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">Remove Member</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
+          <Card className="border-blue-100 dark:border-blue-900/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden animate-scaleIn" style={{ animationDelay: "200ms" }}>
+            <CardHeader>
+              <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-indigo-500"></div>
+              <CardTitle className="flex items-center text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent pl-4">
+                <Award className="h-5 w-5 mr-2 text-blue-500" />
+                Team Achievements
+              </CardTitle>
+              <CardDescription className="pl-4">Recognize the contributions of your team members</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-200 dark:border-yellow-800 hover:shadow-md hover:-translate-y-1 transition-all duration-300 animate-scaleIn" style={{ animationDelay: "250ms" }}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">Most Active Contributor</h3>
+                      <p className="text-sm text-muted-foreground mt-1">Highest activity this month</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="py-12 text-center">
-                    <Users className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
-                    <h3 className="mt-4 text-lg font-medium">No team members found</h3>
-                    <p className="text-muted-foreground mt-1">
-                      {searchQuery 
-                        ? "Try adjusting your search query" 
-                        : "Start by inviting team members to your organization"}
-                    </p>
-                    {!searchQuery && (
-                      <Button className="mt-4">
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Invite Team Member
-                      </Button>
-                    )}
+                    <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center">
+                      <Star className="h-5 w-5 text-yellow-500 animate-pulse-soft" />
+                    </div>
                   </div>
-                )}
+                  <div className="mt-4 flex items-center gap-3">
+                    <Avatar className="h-8 w-8 ring-2 ring-yellow-200 dark:ring-yellow-800">
+                      <AvatarImage src="" alt="Top Contributor" />
+                      <AvatarFallback className="bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/40 dark:to-amber-900/40 text-yellow-700 dark:text-yellow-300">
+                        TC
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium text-sm">Sarah Johnson</div>
+                      <div className="text-xs text-muted-foreground">42 contributions</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800 hover:shadow-md hover:-translate-y-1 transition-all duration-300 animate-scaleIn" style={{ animationDelay: "300ms" }}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">Bug Hunter</h3>
+                      <p className="text-sm text-muted-foreground mt-1">Fixed the most bugs</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+                      <Award className="h-5 w-5 text-blue-500 animate-pulse-soft" />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center gap-3">
+                    <Avatar className="h-8 w-8 ring-2 ring-blue-200 dark:ring-blue-800">
+                      <AvatarImage src="" alt="Bug Hunter" />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 text-blue-700 dark:text-blue-300">
+                        BH
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium text-sm">Alex Wong</div>
+                      <div className="text-xs text-muted-foreground">15 bugs resolved</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800 hover:shadow-md hover:-translate-y-1 transition-all duration-300 animate-scaleIn" style={{ animationDelay: "350ms" }}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">Sprint Champion</h3>
+                      <p className="text-sm text-muted-foreground mt-1">Most tasks completed on time</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+                      <CheckCircle2 className="h-5 w-5 text-green-500 animate-pulse-soft" />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center gap-3">
+                    <Avatar className="h-8 w-8 ring-2 ring-green-200 dark:ring-green-800">
+                      <AvatarImage src="" alt="Sprint Champion" />
+                      <AvatarFallback className="bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 text-green-700 dark:text-green-300">
+                        SC
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium text-sm">Michael Chen</div>
+                      <div className="text-xs text-muted-foreground">24 tasks completed</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Achievements</CardTitle>
-          <CardDescription>Recognize the contributions of your team members</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-200 dark:border-yellow-800">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium">Most Active Contributor</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Highest activity this month</p>
-                </div>
-                <Star className="h-5 w-5 text-yellow-500" />
-              </div>
-              <div className="mt-4 flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="" alt="Top Contributor" />
-                  <AvatarFallback>TC</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-medium text-sm">Sarah Johnson</div>
-                  <div className="text-xs text-muted-foreground">42 contributions</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium">Bug Hunter</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Fixed the most bugs</p>
-                </div>
-                <Award className="h-5 w-5 text-blue-500" />
-              </div>
-              <div className="mt-4 flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="" alt="Bug Hunter" />
-                  <AvatarFallback>BH</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-medium text-sm">Alex Wong</div>
-                  <div className="text-xs text-muted-foreground">15 bugs resolved</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium">Sprint Champion</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Most tasks completed on time</p>
-                </div>
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-              </div>
-              <div className="mt-4 flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="" alt="Sprint Champion" />
-                  <AvatarFallback>SC</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-medium text-sm">Michael Chen</div>
-                  <div className="text-xs text-muted-foreground">24 tasks completed</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 } 

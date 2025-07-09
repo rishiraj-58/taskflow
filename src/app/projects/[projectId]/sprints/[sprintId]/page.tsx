@@ -13,11 +13,15 @@ import {
   ListChecksIcon,
   CheckCircleIcon,
   ClockIcon,
+  ChevronRightIcon,
+  AlertCircleIcon,
 } from "lucide-react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import SprintProgressBar from "@/components/sprints/SprintProgressBar";
 import Link from "next/link";
 import SprintTaskList from "@/components/sprints/SprintTaskList";
+import { Suspense } from "react";
+import SprintStatistics from "@/components/sprints/SprintStatistics";
 
 interface SprintPageProps {
   params: {
@@ -53,6 +57,7 @@ export async function generateMetadata({
   }
 }
 
+// Main server component
 export default async function SprintPage({ params }: SprintPageProps) {
   const authData = await auth();
 
@@ -64,7 +69,7 @@ export default async function SprintPage({ params }: SprintPageProps) {
   try {
     // Get the database user by Clerk ID
     const dbUser = await db.user.findUnique({
-      where: { clerkId: authData.userId },
+      where: { clerkId: authData.userId ?? undefined },
     });
 
     if (!dbUser) {
@@ -120,126 +125,117 @@ export default async function SprintPage({ params }: SprintPageProps) {
     // Format dates
     const startDate = format(new Date(sprint.startDate), "MMMM d, yyyy");
     const endDate = format(new Date(sprint.endDate), "MMMM d, yyyy");
+    
+    // Calculate days remaining
+    const today = new Date();
+    const endDateObj = new Date(sprint.endDate);
+    const daysRemaining = Math.ceil((endDateObj.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const sprintDuration = Math.ceil((endDateObj.getTime() - new Date(sprint.startDate).getTime()) / (1000 * 60 * 60 * 24));
 
     // Get status badge color
     const getStatusBadge = (status: string) => {
       switch (status) {
         case "planned":
-          return <Badge variant="outline" className="bg-slate-100 text-slate-800">Planned</Badge>;
+          return <Badge variant="outline" className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700">Planned</Badge>;
         case "active":
-          return <Badge variant="default" className="bg-blue-500">Active</Badge>;
+          return <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white">Active</Badge>;
         case "completed":
-          return <Badge variant="default" className="bg-green-500">Completed</Badge>;
+          return <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white">Completed</Badge>;
         default:
           return null;
       }
     };
     
     return (
-      <div className="container mx-auto py-6">
-        <div className="mb-6">
-          <div className="flex items-center space-x-4">
-            <Link href={`/projects/${params.projectId}/sprints`}>
-              <Button variant="outline" size="icon">
-                <ArrowLeftIcon className="h-4 w-4" />
-              </Button>
-            </Link>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight">{sprint.name}</h2>
-              <div className="flex items-center mt-1 space-x-2">
-                <span className="text-muted-foreground text-sm">
-                  <CalendarIcon className="inline h-3 w-3 mr-1" />
-                  {startDate} - {endDate}
-                </span>
-                {getStatusBadge(sprint.status)}
+      <div className="container mx-auto py-6 animate-fadeIn">
+        <div className="relative rounded-xl overflow-hidden mb-6">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-purple-600/20 animate-gradient"></div>
+          <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm p-6 rounded-xl border border-gray-200 dark:border-gray-800">
+            <div className="flex items-center space-x-4">
+              <Link href={`/projects/${params.projectId}/sprints`} prefetch={true}>
+                <Button variant="outline" size="icon" className="rounded-full bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all group">
+                  <ArrowLeftIcon className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
+                  <span className="sr-only">Back to sprints</span>
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <div className="flex items-center">
+                  <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-br from-blue-600 to-indigo-600 bg-clip-text text-transparent">{sprint.name}</h2>
+                  <div className="ml-3">
+                    {getStatusBadge(sprint.status)}
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-4 mt-2">
+                  <span className="text-sm text-muted-foreground flex items-center">
+                    <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-blue-500 dark:text-blue-400" />
+                    {startDate} - {endDate}
+                  </span>
+                  {sprint.status === "active" && (
+                    <span className="text-sm font-medium flex items-center">
+                      <ClockIcon className="h-3.5 w-3.5 mr-1.5 text-amber-500 dark:text-amber-400" />
+                      {daysRemaining > 0 ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining` : 'Ends today'}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
         
-        <div className="grid gap-8">
+        <div className="grid gap-6">
           {sprint.description && (
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-muted-foreground">{sprint.description}</p>
+            <Card className="border-blue-100 dark:border-blue-900/30 shadow-sm hover:shadow-md transition-shadow overflow-hidden animate-scaleIn">
+              <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-indigo-500"></div>
+              <CardContent className="pt-6 pl-5">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">DESCRIPTION</h3>
+                <p className="text-foreground">{sprint.description}</p>
               </CardContent>
             </Card>
           )}
           
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Duration</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center">
-                  <ClockIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span className="text-2xl font-bold">
-                    {Math.ceil((new Date(sprint.endDate).getTime() - new Date(sprint.startDate).getTime()) / (1000 * 60 * 60 * 24))} days
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center">
-                  <ListChecksIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span className="text-2xl font-bold">{totalTasks}</span>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center">
-                  <CheckCircleIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span className="text-2xl font-bold">{completedTasks}</span>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SprintProgressBar 
-                  completedTasks={completedTasks} 
-                  totalTasks={totalTasks} 
-                />
-              </CardContent>
-            </Card>
-          </div>
+          {/* Use the client component for statistics */}
+          <SprintStatistics 
+            initialTotalTasks={totalTasks}
+            initialCompletedTasks={completedTasks}
+            initialInProgressTasks={inProgressTasks}
+            initialTodoTasks={todoTasks}
+            sprintId={params.sprintId}
+            daysRemaining={daysRemaining}
+            sprintDuration={sprintDuration}
+          />
           
-          <div>
-            <SprintTaskList projectId={params.projectId} sprintId={params.sprintId} />
+          <div className="mt-2 animate-scaleIn" style={{ animationDelay: "200ms" }}>
+            <Suspense fallback={<div className="animate-pulse h-40 bg-gray-100 dark:bg-gray-800 rounded-md"></div>}>
+              <SprintTaskList projectId={params.projectId} sprintId={params.sprintId} />
+            </Suspense>
           </div>
         </div>
       </div>
     );
   } catch (error) {
-    console.error("Error fetching sprint or task data:", error);
+    console.error("Error loading sprint:", error);
     return (
-      <div className="h-full flex flex-col items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <ExclamationTriangleIcon className="h-12 w-12 text-destructive mx-auto" />
-          <h1 className="text-2xl font-bold">Database connection error</h1>
-          <p className="text-muted-foreground">
-            We encountered an error while retrieving sprint data. Please try again later.
-          </p>
-          <Button asChild className="mt-4">
-            <Link href={`/projects/${params.projectId}/sprints`}>
+      <div className="container mx-auto py-6">
+        <div className="flex items-center mb-6">
+          <Link href={`/projects/${params.projectId}/sprints`} prefetch={true}>
+            <Button variant="outline" size="sm" className="mr-4">
+              <ArrowLeftIcon className="h-4 w-4 mr-2" />
               Back to Sprints
-            </Link>
-          </Button>
+            </Button>
+          </Link>
+          <h2 className="text-2xl font-bold">Sprint Details</h2>
         </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-4 text-red-500">
+              <ExclamationTriangleIcon className="h-8 w-8" />
+              <div>
+                <h3 className="font-semibold">Error Loading Sprint</h3>
+                <p>There was a problem loading the sprint details. Please try again later.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

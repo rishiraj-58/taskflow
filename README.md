@@ -9,6 +9,7 @@ TaskFlow is a comprehensive project management tool aimed at solving the pain po
 - **Database**: Supabase with Prisma ORM
 - **File Storage**: Amazon S3 Buckets
 - **Payments**: Stripe
+- **AI Features**: GitHub AI Model via Azure Inference API
 - **Deployment**: Vercel
 
 ## Prerequisites
@@ -19,6 +20,7 @@ TaskFlow is a comprehensive project management tool aimed at solving the pain po
 - Clerk account
 - AWS account (for S3)
 - Stripe account (for payments)
+- GitHub token for AI features
 
 ## Setup Instructions
 
@@ -61,6 +63,9 @@ AWS_ACCESS_KEY_ID=your_aws_access_key_id
 AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
 AWS_REGION=your_aws_region
 AWS_BUCKET_NAME=your_bucket_name
+
+# GitHub AI (for AI features)
+GITHUB_TOKEN=your_github_token
 ```
 
 Replace the placeholder values with your actual credentials.
@@ -90,13 +95,54 @@ npm run prisma:migrate:deploy
    - `user.updated`
    - `user.deleted`
 
-### 6. Run the Development Server
+### 6. Set Up AI Features (Optional)
+
+TaskFlow includes AI-powered features for natural language task management. To set up these features:
+
+```bash
+# Run the AI setup script
+bash setup-ai.sh
+```
+
+This script will:
+1. Install the required AI dependencies
+2. Set up the necessary environment variables
+3. Provide instructions for configuring your GitHub token
+
+### 7. Run the Development Server
 
 ```bash
 npm run dev
 ```
 
 The application will be available at http://localhost:3000.
+
+## AI Features
+
+TaskFlow includes an AI assistant that helps users manage tasks using natural language. The AI assistant can:
+
+- Create tasks from natural language descriptions
+- Update task properties (assignee, status, priority, etc.)
+- Move tasks between sprints
+- Generate subtasks for complex work items
+
+### Using the AI Assistant
+
+1. Navigate to your project dashboard
+2. Click the chat icon in the bottom-right corner of the screen
+3. Type a natural language command like:
+   - "Create a bug task for the login page error"
+   - "Move all UI tasks to Sprint 3"
+   - "Generate 5 subtasks for the user onboarding feature"
+4. Review and confirm the AI's interpretation
+5. The action will be executed and visible in your project
+
+### AI Setup Requirements
+
+The AI features require:
+- A GitHub token with access to the GitHub AI model
+- The Azure Inference API client libraries
+- The environment variable `GITHUB_TOKEN` set in your `.env.local` file
 
 ## Deployment
 

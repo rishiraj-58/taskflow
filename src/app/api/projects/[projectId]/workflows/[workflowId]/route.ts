@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
-import prisma from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 // GET - Get a specific workflow
 export async function GET(
   request: NextRequest,
   { params }: { params: { projectId: string; workflowId: string } }
 ) {
-  const userId  = currentUser();
+  const { userId } = await auth();
   const { projectId, workflowId } = params;
 
   if (!userId) {
@@ -66,7 +66,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { projectId: string; workflowId: string } }
 ) {
-  const userId  = currentUser();
+  const { userId } = await auth();
   const { projectId, workflowId } = params;
 
   if (!userId) {
@@ -94,7 +94,7 @@ export async function PUT(
           members: {
             some: {
               userId: user.id,
-              role: { in: ['ADMIN', 'OWNER'] },
+              role: { in: ['ADMIN'] },
             },
           },
         },
@@ -142,7 +142,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { projectId: string; workflowId: string } }
 ) {
-  const userId = currentUser();
+  const { userId } = await auth();
   const { projectId, workflowId } = params;
 
   if (!userId) {
@@ -167,7 +167,7 @@ export async function DELETE(
           members: {
             some: {
               userId: user.id,
-              role: { in: ['ADMIN', 'OWNER'] },
+              role: { in: ['ADMIN'] },
             },
           },
         },

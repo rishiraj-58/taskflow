@@ -111,7 +111,7 @@ export async function PUT(
         where: {
           workspaceId,
           userId: dbUser.id,
-          role: { in: ['ADMIN', 'OWNER'] },
+          role: 'ADMIN',
         },
       });
 

@@ -190,6 +190,8 @@ export async function PATCH(
 
     // If assigneeId is provided, verify that user is a member of the project
     if (taskData.assigneeId) {
+      console.log(`Validating assignee: ${taskData.assigneeId}`);
+      
       // Get project with its workspace and members
       const project = await prisma.project.findUnique({
         where: { id: params.projectId },
@@ -209,10 +211,14 @@ export async function PATCH(
         );
       }
       
+      console.log(`Project workspace members:`, project.workspace.members.map((m: any) => ({ memberId: m.id, userId: m.userId })));
+      
       // Check if the assignee is a member of the project's workspace
       const assigneeIsMember = project.workspace.members.some(
         (member: any) => member.userId === taskData.assigneeId
       );
+
+      console.log(`Assignee ${taskData.assigneeId} is member: ${assigneeIsMember}`);
 
       if (!assigneeIsMember) {
         return NextResponse.json(

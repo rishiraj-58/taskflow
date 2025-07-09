@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Globe, Briefcase, LayoutGrid, Users, CalendarDays, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import CreateWorkspaceModal from "./CreateWorkspaceModal";
 
@@ -118,6 +118,16 @@ export default function WorkspacesList() {
     }
   };
 
+  const getRandomWorkspaceIcon = (index: number) => {
+    const icons = [
+      <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" key="globe" />,
+      <Briefcase className="h-5 w-5 text-indigo-600 dark:text-indigo-400" key="briefcase" />,
+      <LayoutGrid className="h-5 w-5 text-purple-600 dark:text-purple-400" key="grid" />,
+      <Users className="h-5 w-5 text-teal-600 dark:text-teal-400" key="users" />
+    ];
+    return icons[index % icons.length];
+  };
+
   if (loading && workspaces.length === 0) {
     return <div className="flex justify-center items-center h-64">Loading workspaces...</div>;
   }
@@ -172,25 +182,51 @@ export default function WorkspacesList() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {workspaces.map((workspace) => (
+          {workspaces.map((workspace, index) => (
             <Link key={workspace.id} href={`/workspaces/${workspace.id}`}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                <CardHeader>
-                  <CardTitle>{workspace.name}</CardTitle>
-                  <CardDescription>{workspace.description}</CardDescription>
+              <Card className="overflow-hidden border-0 bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full group relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/10 dark:from-blue-600/10 dark:to-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <CardHeader className="pb-0">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 flex items-center justify-center animate-pulse-soft">
+                      {getRandomWorkspaceIcon(index)}
+                    </div>
+                    {workspace.isOwner && (
+                      <span className="px-2.5 py-1 text-xs font-medium bg-gradient-to-r from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 text-blue-700 dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-800/50">
+                        Owner
+                      </span>
+                    )}
+                  </div>
+                  <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {workspace.name}
+                  </CardTitle>
+                  <CardDescription className="line-clamp-2 mt-1.5 text-gray-600 dark:text-gray-400">
+                    {workspace.description || "No description provided"}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-500">{workspace.memberCount} {workspace.memberCount === 1 ? 'member' : 'members'}</p>
+                
+                <CardContent className="pt-4">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-1.5 rounded-md mr-2">
+                      <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span>{workspace.memberCount} {workspace.memberCount === 1 ? 'member' : 'members'}</span>
+                  </div>
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                  <p className="text-xs text-gray-400">
-                    Created {workspace.createdAt.toLocaleDateString()}
-                  </p>
-                  {workspace.isOwner && (
-                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                      Owner
-                    </span>
-                  )}
+                
+                <CardFooter className="border-t border-gray-100 dark:border-gray-800 pt-4 flex items-center justify-between">
+                  <div className="flex items-center text-xs text-gray-500 dark:text-gray-500">
+                    <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+                    {workspace.createdAt.toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}
+                  </div>
+                  <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center group-hover:bg-blue-500 dark:group-hover:bg-blue-600 transition-colors">
+                    <ArrowRight className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 group-hover:text-white transition-colors" />
+                  </div>
                 </CardFooter>
               </Card>
             </Link>

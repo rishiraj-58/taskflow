@@ -2,13 +2,35 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { CalendarIcon, ClockIcon, UserIcon } from "lucide-react";
+import { formatDistanceToNow, parseISO } from "date-fns";
+import { 
+  CalendarIcon, 
+  Clock, 
+  AlertCircle, 
+  CheckCircle2,
+  User2,
+  Tag,
+  ArrowDownLeft,
+  ArrowRight,
+  ArrowUpRight,
+  CheckCircle
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface Task {
   id: string;
@@ -27,209 +49,291 @@ interface Task {
 interface TaskCardProps {
   task: Task;
   projectId: string;
-  onStatusChange?: (taskId: string, newStatus: string) => void;
+  onStatusChange: (taskId: string, newStatus: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-export function TaskCard({ task, projectId, onStatusChange }: TaskCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
+export function TaskCard({ task, projectId, onStatusChange, className, style }: TaskCardProps) {
+  const [updating, setUpdating] = useState(false);
 
-  // Status mapping for styling
-  const statusConfig = {
-    "todo": { 
-      label: "To Do", 
-      color: "bg-slate-200 text-slate-800" 
-    },
-    "in-progress": { 
-      label: "In Progress", 
-      color: "bg-blue-200 text-blue-800" 
-    },
-    "review": { 
-      label: "In Review", 
-      color: "bg-yellow-200 text-yellow-800" 
-    },
-    "done": { 
-      label: "Done", 
-      color: "bg-green-200 text-green-800" 
-    }
+  const handleStatusChange = async (newStatus: string) => {
+    setUpdating(true);
+    await onStatusChange(task.id, newStatus);
+    setUpdating(false);
   };
 
-  // Priority mapping for styling
-  const priorityConfig = {
-    "low": { 
-      label: "Low", 
-      color: "bg-gray-200 text-gray-800" 
-    },
-    "medium": { 
-      label: "Medium", 
-      color: "bg-blue-200 text-blue-800" 
-    },
-    "high": { 
-      label: "High", 
-      color: "bg-orange-200 text-orange-800" 
-    },
-    "urgent": { 
-      label: "Urgent", 
-      color: "bg-red-200 text-red-800" 
-    }
-  };
-
-  // Type mapping for styling
-  const typeConfig = {
-    "bug": { 
-      label: "Bug", 
-      color: "bg-red-200 text-red-800" 
-    },
-    "feature": { 
-      label: "Feature", 
-      color: "bg-green-200 text-green-800" 
-    },
-    "improvement": { 
-      label: "Improvement", 
-      color: "bg-blue-200 text-blue-800" 
-    },
-    "task": { 
-      label: "Task", 
-      color: "bg-purple-200 text-purple-800" 
-    },
-    "documentation": { 
-      label: "Documentation", 
-      color: "bg-yellow-200 text-yellow-800" 
-    }
-  };
-
-  const handleStatusChange = (newStatus: string) => {
-    if (onStatusChange) {
-      onStatusChange(task.id, newStatus);
-    }
-  };
-
-  // Handle due date display
-  const getDueDateInfo = () => {
+  // Determine due date status
+  const getDueDateStatus = () => {
     if (!task.dueDate) return null;
     
     try {
-      const dueDate = new Date(task.dueDate);
-      
-      // Check if the date is valid
-      if (isNaN(dueDate.getTime())) {
-        return null;
-      }
-      
+      const dueDate = parseISO(task.dueDate);
       const now = new Date();
-      const isPastDue = dueDate < now && task.status !== "done";
+      const isPast = dueDate < now;
+      const isToday = dueDate.toDateString() === now.toDateString();
+      const isTomorrow = new Date(now.setDate(now.getDate() + 1)).toDateString() === dueDate.toDateString();
       
-      return {
-        formatted: dueDate.toLocaleDateString(),
-        relative: formatDistanceToNow(dueDate, { addSuffix: true }),
-        isPastDue
-      };
-    } catch (error) {
-      console.error("Error parsing due date:", error);
+      if (isPast) return "overdue";
+      if (isToday) return "today";
+      if (isTomorrow) return "tomorrow";
+      return "upcoming";
+    } catch (e) {
+      console.error("Error parsing due date:", e);
       return null;
     }
   };
 
-  const dueDateInfo = getDueDateInfo();
+  const dueDateStatus = getDueDateStatus();
+
+  // Status configuration
+  const statusConfig = {
+    "todo": { 
+      label: "To Do", 
+      icon: ArrowDownLeft,
+      color: "text-blue-500 dark:text-blue-400",
+      bg: "bg-blue-100 dark:bg-blue-900/30"
+    },
+    "in-progress": { 
+      label: "In Progress", 
+      icon: ArrowRight,
+      color: "text-amber-500 dark:text-amber-400",
+      bg: "bg-amber-100 dark:bg-amber-900/30"
+    },
+    "review": { 
+      label: "In Review", 
+      icon: ArrowUpRight,
+      color: "text-purple-500 dark:text-purple-400",
+      bg: "bg-purple-100 dark:bg-purple-900/30"
+    },
+    "done": { 
+      label: "Done", 
+      icon: CheckCircle,
+      color: "text-green-500 dark:text-green-400",
+      bg: "bg-green-100 dark:bg-green-900/30"
+    }
+  };
+
+  // Priority configuration
+  const priorityConfig = {
+    "urgent": { 
+      label: "Urgent", 
+      icon: AlertCircle,
+      color: "text-red-600 dark:text-red-500",
+      bg: "bg-red-100 dark:bg-red-900/30" 
+    },
+    "high": { 
+      label: "High", 
+      icon: AlertCircle,
+      color: "text-orange-600 dark:text-orange-500",
+      bg: "bg-orange-100 dark:bg-orange-900/30" 
+    },
+    "medium": { 
+      label: "Medium", 
+      icon: Clock,
+      color: "text-blue-600 dark:text-blue-500",
+      bg: "bg-blue-100 dark:bg-blue-900/30" 
+    },
+    "low": { 
+      label: "Low", 
+      icon: CheckCircle2,
+      color: "text-gray-600 dark:text-gray-400",
+      bg: "bg-gray-100 dark:bg-gray-800" 
+    }
+  };
+
+  // Type configuration
+  const typeConfig = {
+    "bug": { 
+      label: "Bug", 
+      color: "text-red-600 dark:text-red-500",
+      bg: "bg-red-100 dark:bg-red-900/30" 
+    },
+    "feature": { 
+      label: "Feature", 
+      color: "text-green-600 dark:text-green-500",
+      bg: "bg-green-100 dark:bg-green-900/30" 
+    },
+    "improvement": { 
+      label: "Improvement", 
+      color: "text-sky-600 dark:text-sky-500",
+      bg: "bg-sky-100 dark:bg-sky-900/30" 
+    },
+    "task": { 
+      label: "Task", 
+      color: "text-blue-600 dark:text-blue-500",
+      bg: "bg-blue-100 dark:bg-blue-900/30" 
+    },
+    "documentation": { 
+      label: "Documentation", 
+      color: "text-purple-600 dark:text-purple-500",
+      bg: "bg-purple-100 dark:bg-purple-900/30" 
+    }
+  };
+
+  // Due date configuration
+  const dueDateConfig = {
+    "overdue": { 
+      color: "text-red-600 dark:text-red-500",
+      bg: "bg-red-100 dark:bg-red-900/30" 
+    },
+    "today": { 
+      color: "text-amber-600 dark:text-amber-500",
+      bg: "bg-amber-100 dark:bg-amber-900/30" 
+    },
+    "tomorrow": { 
+      color: "text-orange-600 dark:text-orange-500",
+      bg: "bg-orange-100 dark:bg-orange-900/30" 
+    },
+    "upcoming": { 
+      color: "text-blue-600 dark:text-blue-500",
+      bg: "bg-blue-100 dark:bg-blue-900/30" 
+    }
+  };
+
+  // Get status display configuration
+  const statusDisplay = statusConfig[task.status];
+  const priorityDisplay = priorityConfig[task.priority];
+  const typeDisplay = typeConfig[task.type];
+  const StatusIcon = statusDisplay.icon;
+  const PriorityIcon = priorityDisplay.icon;
 
   return (
     <Card 
       className={cn(
-        "transition-all duration-200 hover:shadow-md",
-        isHovered ? "border-primary" : "border-border"
+        "overflow-hidden group transition-all duration-300",
+        className
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      style={style}
     >
-      <CardHeader className="p-4 pb-0">
-        <div className="flex justify-between items-start gap-2">
+      <CardHeader className="p-4 pb-0 flex flex-row items-start justify-between gap-2">
+        <div className="space-y-1.5 flex-1">
           <Link 
-            href={`/projects/${projectId}/tasks/${task.id}`}
-            className="text-lg font-medium hover:text-primary transition-colors duration-200 line-clamp-2"
+            href={`/projects/${projectId}/tasks/${task.id}`} 
+            className="block group-hover:text-primary transition-colors"
           >
-            {task.title}
+            <h3 className="font-medium text-base leading-tight line-clamp-2 hover:underline transition-all">
+              {task.title}
+            </h3>
           </Link>
-          
-          <div className="flex flex-shrink-0 gap-2">
-            <Badge variant="outline" className={cn(typeConfig[task.type].color)}>
-              {typeConfig[task.type].label}
-            </Badge>
-            <Badge variant="outline" className={cn(priorityConfig[task.priority].color)}>
-              {priorityConfig[task.priority].label}
-            </Badge>
-          </div>
         </div>
+        
+        <Badge 
+          variant="outline"
+          className={cn(
+            "flex items-center gap-1 font-normal",
+            statusDisplay.color,
+            statusDisplay.bg
+          )}
+        >
+          <StatusIcon size={12} />
+          <span>{statusDisplay.label}</span>
+        </Badge>
       </CardHeader>
       
-      <CardContent className="p-4">
-        {task.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+      <CardContent className="p-4 pt-3">
+        {task.description ? (
+          <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
             {task.description}
           </p>
+        ) : (
+          <p className="text-sm text-muted-foreground/70 italic mb-3">No description provided</p>
         )}
         
-        <div className="flex flex-col gap-3">
-          {task.assigneeName && (
-            <div className="flex items-center gap-2 text-sm">
-              <UserIcon className="h-4 w-4 text-muted-foreground" />
-              <div className="flex items-center gap-2">
-                <Avatar className="h-5 w-5">
-                  <AvatarImage src={`https://avatar.vercel.sh/${task.assigneeId}`} />
-                  <AvatarFallback className="text-xs">
-                    {task.assigneeName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <span>{task.assigneeName}</span>
-              </div>
-            </div>
-          )}
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Badge 
+            variant="outline"
+            className={cn(
+              "flex items-center gap-1 font-normal",
+              priorityDisplay.color,
+              priorityDisplay.bg
+            )}
+          >
+            <PriorityIcon size={12} />
+            <span>{priorityDisplay.label}</span>
+          </Badge>
           
-          {dueDateInfo && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <span className={cn(
-                      dueDateInfo.isPastDue ? "text-red-600 font-medium" : ""
-                    )}>
-                      {dueDateInfo.formatted}
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{dueDateInfo.relative}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-          
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ClockIcon className="h-4 w-4" />
-            <span>
-              {(() => {
-                try {
-                  if (!task.updatedAt) return "Unknown";
-                  const date = new Date(task.updatedAt);
-                  if (isNaN(date.getTime())) return "Unknown";
-                  return `Updated ${formatDistanceToNow(date, { addSuffix: true })}`;
-                } catch (error) {
-                  console.error("Error formatting date:", error);
-                  return "Updated recently";
-                }
-              })()}
-            </span>
-          </div>
+          <Badge 
+            variant="outline"
+            className={cn(
+              "flex items-center gap-1 font-normal",
+              typeDisplay.color,
+              typeDisplay.bg
+            )}
+          >
+            <Tag size={12} />
+            <span>{typeDisplay.label}</span>
+          </Badge>
         </div>
       </CardContent>
       
-      <CardFooter className="p-4 pt-0">
-        <div className="w-full">
-          <Badge className={cn(
-            "w-full text-center py-1",
-            statusConfig[task.status].color
-          )}>
-            {statusConfig[task.status].label}
-          </Badge>
+      <CardFooter className="p-4 pt-0 flex flex-wrap justify-between items-center gap-2 text-sm">
+        <div className="flex items-center gap-2">
+          {task.assigneeName ? (
+            <div className="flex items-center gap-1.5" title={`Assigned to ${task.assigneeName}`}>
+              <Avatar className="h-6 w-6">
+                <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                  {task.assigneeName.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs text-muted-foreground">{task.assigneeName}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-muted-foreground/70">
+              <User2 size={14} />
+              <span className="text-xs">Unassigned</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {task.dueDate && (
+            <div 
+              className={cn(
+                "flex items-center gap-1.5 text-xs",
+                dueDateStatus && dueDateConfig[dueDateStatus].color
+              )}
+              title={`Due: ${new Date(task.dueDate).toLocaleDateString()}`}
+            >
+              <CalendarIcon size={14} />
+              <span>
+                {dueDateStatus === "today" 
+                  ? "Today" 
+                  : dueDateStatus === "tomorrow" 
+                    ? "Tomorrow"
+                    : formatDistanceToNow(parseISO(task.dueDate), { addSuffix: true })}
+              </span>
+            </div>
+          )}
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 text-xs rounded-full"
+                disabled={updating}
+              >
+                Change Status
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {Object.entries(statusConfig).map(([value, config]) => (
+                <DropdownMenuItem
+                  key={value}
+                  disabled={task.status === value || updating}
+                  className={cn(
+                    "flex items-center gap-2",
+                    task.status === value && "bg-accent"
+                  )}
+                  onClick={() => handleStatusChange(value)}
+                >
+                  <config.icon size={14} className={config.color} />
+                  <span>{config.label}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardFooter>
     </Card>

@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, Calendar, Users, Clock, Upload, Download, Trash2, FileX, File, FileSpreadsheet, FileCode, Archive, HelpCircle, Pencil, UserPlus, UserMinus, MoreHorizontal, MessageSquare, MailOpen, X, Eye, Crown, User, UserX, Map, ArrowUpRight, Milestone } from "lucide-react";
+import { Loader2, AlertCircle, Calendar, Users, Clock, Upload, Download, Trash2, FileX, File, FileSpreadsheet, FileCode, Archive, HelpCircle, Pencil, UserPlus, UserMinus, MoreHorizontal, MessageSquare, MailOpen, X, Eye, Crown, User, UserX, Map, ArrowUpRight, Milestone, Briefcase, Settings } from "lucide-react";
 import TasksList from "@/components/tasks/TasksList";
 import { SprintsList } from "@/components/sprints/SprintsList";
 import { FileIcon, ImageIcon } from "lucide-react";
@@ -16,6 +16,7 @@ import UploadDocumentModal from "@/components/documents/UploadDocumentModal";
 import { useToast } from "@/components/ui/use-toast";
 import DocumentList from "@/components/documents/DocumentList";
 import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface ProjectDetailProps {
   projectId: string;
@@ -61,6 +62,14 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [documents, setDocuments] = useState<any[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [projectName, setProjectName] = useState<string>("");
+  const [projectDescription, setProjectDescription] = useState<string>("");
+  const [projectStatus, setProjectStatus] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUpdatingMember, setIsUpdatingMember] = useState<string | null>(null);
+  const [isRemovingMember, setIsRemovingMember] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchProject = async () => {
@@ -204,6 +213,14 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
     }
   }, [projectId]);
 
+  useEffect(() => {
+    if (project) {
+      setProjectName(project.name || "");
+      setProjectDescription(project.description || "");
+      setProjectStatus(project.status || "PLANNING");
+    }
+  }, [project]);
+
   const handleUploadComplete = () => {
     setIsUploadModalOpen(false);
     toast({
@@ -258,6 +275,197 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
     }
   }, [projectId]);
 
+  const handleArchiveProject = async () => {
+    try {
+      setIsArchiving(true);
+      
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          archived: true
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to archive project");
+      }
+      
+      toast({
+        title: "Project archived",
+        description: "The project has been archived successfully.",
+        variant: "default",
+      });
+      
+      // Redirect to projects list after successful archive
+      router.push('/projects');
+    } catch (error) {
+      console.error("Error archiving project:", error);
+      toast({
+        title: "Archive failed",
+        description: "There was a problem archiving the project. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+  
+  const handleDeleteProject = async () => {
+    try {
+      setIsDeleting(true);
+      
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to delete project");
+      }
+      
+      toast({
+        title: "Project deleted",
+        description: "The project has been deleted successfully.",
+        variant: "default",
+      });
+      
+      // Redirect to projects list after successful deletion
+      router.push('/projects');
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      toast({
+        title: "Deletion failed",
+        description: "There was a problem deleting the project. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSaveProjectSettings = async () => {
+    try {
+      setIsSaving(true);
+      
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: projectName,
+          description: projectDescription,
+          status: projectStatus
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to save project settings");
+      }
+      
+      const updatedProject = await response.json();
+      setProject(updatedProject);
+      
+      toast({
+        title: "Changes saved",
+        description: "Project settings have been updated successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error saving project settings:", error);
+      toast({
+        title: "Save failed",
+        description: "There was a problem saving your changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleMakeAdmin = async (memberId: string) => {
+    try {
+      setIsUpdatingMember(memberId);
+      
+      const response = await fetch(`/api/projects/${projectId}/members`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          memberId,
+          role: 'ADMIN'
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update member role");
+      }
+      
+      const updatedMember = await response.json();
+      
+      // Update the member in the state
+      setProjectMembers(
+        projectMembers.map(member => 
+          member.id === updatedMember.id ? updatedMember : member
+        )
+      );
+      
+      toast({
+        title: "Role updated",
+        description: `${updatedMember.name} is now an admin`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error updating member role:", error);
+      toast({
+        title: "Update failed",
+        description: error instanceof Error ? error.message : "Failed to update member role",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingMember(null);
+    }
+  };
+  
+  const handleRemoveMember = async (memberId: string) => {
+    try {
+      setIsRemovingMember(memberId);
+      
+      const response = await fetch(`/api/projects/${projectId}/members?memberId=${memberId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to remove member");
+      }
+      
+      // Remove the member from the state
+      setProjectMembers(
+        projectMembers.filter(member => member.id !== memberId)
+      );
+      
+      toast({
+        title: "Member removed",
+        description: "The member has been removed from the project",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error removing member:", error);
+      toast({
+        title: "Removal failed",
+        description: error instanceof Error ? error.message : "Failed to remove member",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRemovingMember(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -288,55 +496,117 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-            <p className="text-muted-foreground mt-2">
-              {project.description || "No description provided"}
-            </p>
-          </div>
-          
-          <div className="space-x-2">
-            <Button
-              onClick={() => router.push(`/projects/${projectId}/tasks/new`)}
-              variant="default"
+    <div className="space-y-8 animate-fadeIn">
+      <Card className="border-blue-100 dark:border-blue-900/30 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-2xl">{project.name}</CardTitle>
+              <CardDescription>{project.description || 'No description available'}</CardDescription>
+            </div>
+            <Badge
+              variant={
+                project.status === 'completed' ? 'outline' :
+                project.status === 'active' ? 'default' :
+                project.status === 'on-hold' ? 'destructive' : 
+                project.status === 'planning' ? 'secondary' : 'outline'
+              }
+              className="capitalize"
             >
-              Add Task
-            </Button>
+              {project.status.replace(/-/g, ' ')}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 mr-1.5" />
+              <span>Created {new Date(project.createdAt).toLocaleDateString('en-US', { 
+                year: 'numeric', month: 'short', day: 'numeric' 
+              })}</span>
+            </div>
+            <div className="flex items-center">
+              <Users className="h-4 w-4 mr-1.5" />
+              <span>{project.memberCount || 0} {project.memberCount === 1 ? 'member' : 'members'}</span>
+            </div>
+            <div className="flex items-center">
+              <Clock className="h-4 w-4 mr-1.5" />
+              <span>{project.taskCount || 0} {project.taskCount === 1 ? 'task' : 'tasks'}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {error && (
+        <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md relative animate-scaleIn" role="alert">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <span>{error}</span>
           </div>
         </div>
-
-        <div className="flex flex-wrap gap-4 mt-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            <span>Created on {new Date(project.createdAt).toLocaleDateString()}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            <span>{project.memberCount || 0} Members</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            <span>{project.taskCount || 0} Tasks</span>
-          </div>
-        </div>
-      </div>
+      )}
       
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="sprints">Sprints</TabsTrigger>
-          <TabsTrigger value="bugs">Bugs</TabsTrigger>
-          <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
-          <TabsTrigger value="files">Files</TabsTrigger>
-          <TabsTrigger value="members">Members</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className="bg-gray-100 dark:bg-gray-800/50 p-1">
+          <TabsTrigger 
+            value="overview"
+            className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+          >
+            <Briefcase className="h-4 w-4 mr-2" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger 
+            value="tasks"
+            className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+          >
+            <Clock className="h-4 w-4 mr-2" />
+            Tasks
+          </TabsTrigger>
+          <TabsTrigger 
+            value="sprints"
+            className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Sprints
+          </TabsTrigger>
+          <TabsTrigger 
+            value="bugs"
+            className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+          >
+            <AlertCircle className="h-4 w-4 mr-2" />
+            Bugs
+          </TabsTrigger>
+          <TabsTrigger 
+            value="roadmap"
+            className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+          >
+            <Map className="h-4 w-4 mr-2" />
+            Roadmap
+          </TabsTrigger>
+          <TabsTrigger 
+            value="files"
+            className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+          >
+            <File className="h-4 w-4 mr-2" />
+            Files
+          </TabsTrigger>
+          <TabsTrigger 
+            value="members"
+            className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Members
+          </TabsTrigger>
+          <TabsTrigger 
+            value="settings"
+            className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="space-y-4 py-4">
+        <TabsContent value="overview" className="space-y-6 py-4 animate-fadeIn">
           <Card>
             <CardHeader>
               <CardTitle>Project Overview</CardTitle>
@@ -826,18 +1096,45 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>
-                                <Crown className="h-4 w-4 mr-2" />
-                                Make Admin
-                              </DropdownMenuItem>
+                              {member.role !== 'ADMIN' && (
+                                <DropdownMenuItem 
+                                  onClick={() => handleMakeAdmin(member.id)}
+                                  disabled={isUpdatingMember === member.id}
+                                >
+                                  {isUpdatingMember === member.id ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      Updating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Crown className="h-4 w-4 mr-2" />
+                                      Make Admin
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem>
                                 <MessageSquare className="h-4 w-4 mr-2" />
                                 Send Message
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-500">
-                                <UserMinus className="h-4 w-4 mr-2" />
-                                Remove from Project
+                              <DropdownMenuItem 
+                                className="text-red-500"
+                                onClick={() => handleRemoveMember(member.id)}
+                                disabled={isRemovingMember === member.id}
+                              >
+                                {isRemovingMember === member.id ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Removing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <UserMinus className="h-4 w-4 mr-2" />
+                                    Remove from Project
+                                  </>
+                                )}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -960,7 +1257,8 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
                         <input 
                           type="text" 
                           id="projectName" 
-                          defaultValue={project.name}
+                          value={projectName}
+                          onChange={(e) => setProjectName(e.target.value)}
                           className="w-full px-3 py-2 border rounded-md mt-1"
                         />
                       </div>
@@ -968,7 +1266,8 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
                         <label className="text-sm font-medium" htmlFor="projectStatus">Project Status</label>
                         <select
                           id="projectStatus"
-                          defaultValue={project.status}
+                          value={projectStatus}
+                          onChange={(e) => setProjectStatus(e.target.value)}
                           className="w-full px-3 py-2 border rounded-md mt-1"
                         >
                           <option value="PLANNING">Planning</option>
@@ -984,15 +1283,39 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
                       <label className="text-sm font-medium" htmlFor="projectDescription">Project Description</label>
                       <textarea 
                         id="projectDescription" 
-                        defaultValue={project.description}
+                        value={projectDescription}
+                        onChange={(e) => setProjectDescription(e.target.value)}
                         rows={3}
                         className="w-full px-3 py-2 border rounded-md mt-1"
                       />
                     </div>
                     
                     <div className="flex justify-end">
-                      <Button variant="outline" className="mr-2">Cancel</Button>
-                      <Button>Save Changes</Button>
+                      <Button 
+                        variant="outline" 
+                        className="mr-2"
+                        onClick={() => {
+                          // Reset form to current project values
+                          setProjectName(project.name || "");
+                          setProjectDescription(project.description || "");
+                          setProjectStatus(project.status || "PLANNING");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleSaveProjectSettings}
+                        disabled={isSaving}
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Changes'
+                        )}
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -1078,9 +1401,39 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
                           The project will be hidden but can be restored later
                         </p>
                       </div>
-                      <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50">
-                        Archive Project
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className="border-red-300 text-red-600 hover:bg-red-50"
+                            disabled={isArchiving}
+                          >
+                            {isArchiving ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Archiving...
+                              </>
+                            ) : (
+                              'Archive Project'
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Archive this project?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will archive the project and make it hidden from the main project list.
+                              You can restore it later from the archived projects section.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleArchiveProject}>
+                              Archive Project
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                     
                     <div className="flex items-center justify-between p-4 border border-red-200 rounded-md">
@@ -1090,7 +1443,35 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
                           This action cannot be undone. All data will be permanently removed.
                         </p>
                       </div>
-                      <Button variant="destructive">Delete Project</Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" disabled={isDeleting}>
+                            {isDeleting ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              'Delete Project'
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the
+                              project and all associated data including tasks, sprints, bugs, and documents.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteProject}>
+                              Delete Project
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </CardContent>
@@ -1102,8 +1483,8 @@ export default function ProjectDetail({ projectId }: ProjectDetailProps) {
       <UploadDocumentModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
-        onUploadComplete={handleUploadComplete}
         projectId={projectId}
+        onUploadComplete={handleUploadComplete}
       />
     </div>
   );

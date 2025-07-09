@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
 
 // POST - Create a new workflow
@@ -7,7 +7,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { projectId: string } }
 ) {
-  const  userId  = currentUser();
+  const { userId } = await auth();
   const { projectId } = params;
 
   if (!userId) {
@@ -82,7 +82,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { projectId: string } }
 ) {
-  const  userId  = currentUser();
+  const { userId } = await auth();
   const { projectId } = params;
 
   if (!userId) {

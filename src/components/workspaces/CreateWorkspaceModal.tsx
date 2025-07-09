@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
+import { Briefcase, X, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { createPortal } from "react-dom";
 
 type CreateWorkspaceModalProps = {
   isOpen: boolean;
@@ -16,8 +22,28 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreate }: Crea
     description: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  // Set up portal mounting
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+  
+  // Prevent scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
-  if (!isOpen) {
+  if (!isOpen || !mounted) {
     return null;
   }
 
@@ -44,65 +70,107 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreate }: Crea
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose}></div>
-        
-        <div className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Create New Workspace</h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              A workspace is where you and your team can collaborate on projects.
-            </p>
+  const modalContent = (
+    <div 
+      className="fixed inset-0 z-[9999] overflow-hidden"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+    >
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      />
+      
+      {/* Modal Centering Container */}
+      <div 
+        className="fixed inset-0 flex items-center justify-center p-4"
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        {/* Modal */}
+        <div 
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl animate-scaleIn w-full max-w-lg max-h-[80vh] overflow-auto"
+          onClick={e => e.stopPropagation()}
+          style={{ maxHeight: '80vh', width: '100%', maxWidth: '32rem', margin: 'auto' }}
+        >
+          {/* Close Button */}
+          <div className="absolute top-4 right-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose}
+              className="h-8 w-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Modal Content */}
+          <div className="px-6 pt-8 pb-8">
+            <div className="flex flex-col items-center mb-6">
+              <div className="h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-4 animate-pulse-soft">
+                <Briefcase className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white">Create New Workspace</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 text-center">
+                A workspace is where you and your team can collaborate on projects.
+              </p>
+            </div>
             
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                <Label htmlFor="name">
                   Workspace Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
+                </Label>
+                <Input
                   id="name"
+                  name="name"
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm"
                   placeholder="My Team Workspace"
+                  className="w-full"
+                  autoFocus
                 />
               </div>
               
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div className="space-y-1.5">
+                <Label htmlFor="description">
                   Description
-                </label>
-                <textarea
-                  name="description"
+                </Label>
+                <Textarea
                   id="description"
+                  name="description"
                   value={formData.description}
                   onChange={handleChange}
                   rows={3}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm"
                   placeholder="Describe the purpose of this workspace"
+                  className="resize-none"
                 />
               </div>
               
-              <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
-                <button
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
+                <Button
                   type="submit"
                   disabled={isSubmitting || !formData.name.trim()}
-                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:col-start-2 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md w-full sm:w-auto"
                 >
-                  {isSubmitting ? "Creating..." : "Create Workspace"}
-                </button>
-                <button
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : "Create Workspace"}
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={onClose}
-                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600"
+                  className="w-full sm:w-auto"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -110,4 +178,7 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreate }: Crea
       </div>
     </div>
   );
+
+  // Render using portal to ensure it's at the document root level
+  return createPortal(modalContent, document.body);
 } 

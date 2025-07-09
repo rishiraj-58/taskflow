@@ -96,10 +96,10 @@ export function MentionInput({ value, onChange, onMentionsChange, projectId, pla
     
     // Add the user ID to our list of mentioned users
     setMentionedUserIds(prev => {
-      if (prev.includes(member.id)) {
+      if (prev.includes(member.userId)) {
         return prev;
       }
-      return [...prev, member.id];
+      return [...prev, member.userId];
     });
     
     // Exit mention mode
@@ -147,12 +147,12 @@ export function MentionInput({ value, onChange, onMentionsChange, projectId, pla
               <CommandGroup>
                 {filteredMembers.map(member => (
                   <CommandItem
-                    key={member.id}
+                    key={member.userId}
                     onSelect={() => insertMention(member)}
                     className="flex items-center gap-2"
                   >
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={`https://avatar.vercel.sh/${member.id}`} />
+                      <AvatarImage src={`https://avatar.vercel.sh/${member.userId}`} />
                       <AvatarFallback className="text-xs">
                         {member.name.charAt(0)}
                       </AvatarFallback>

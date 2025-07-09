@@ -68,7 +68,7 @@ export async function GET(
     // Calculate completed and total tasks for each sprint
     const sprintsWithTaskCounts = sprints.map((sprint: any) => {
       const completedTasks = sprint.tasks.filter((task: any) => 
-        task.status === "DONE"
+        task.status === "done"
       ).length;
       const totalTasks = sprint.tasks.length;
 

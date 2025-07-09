@@ -59,10 +59,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchNotifications();
     
-    // Set up polling for new notifications every 30 seconds
+    // Set up polling for new notifications every 10 seconds
     const intervalId = setInterval(() => {
       checkForNewNotifications();
-    }, 30000);
+    }, 10000);
     
     return () => clearInterval(intervalId);
   }, []);
@@ -72,14 +72,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const currentTime = new Date();
     const freshNotifications = await fetchNotifications();
     
+    console.log(`Checking for new notifications. Current count: ${freshNotifications.length}`);
+    
     // Find notifications that arrived after lastCheckedAt
     const newNotifications = freshNotifications.filter((notification: any) => {
       const notificationDate = new Date(notification.createdAt);
       return notificationDate > lastCheckedAt && !notification.read;
     });
     
+    console.log(`Found ${newNotifications.length} new notifications since last check`);
+    
     // Show popup for each new notification
     newNotifications.forEach((notification: any) => {
+      console.log(`Showing notification popup for: ${notification.comment.author.firstName} mentioned you`);
       showNotificationPopup(notification);
     });
     

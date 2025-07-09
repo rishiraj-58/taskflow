@@ -2,6 +2,14 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/toaster";
+import { Suspense } from "react";
+import dynamic from "next/dynamic";
+
+// Dynamically import the AI chat button with no SSR to avoid hydration issues
+const AIChatButton = dynamic(
+  () => import("@/components/ai/AIChatButton"),
+  { ssr: false }
+);
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,6 +35,9 @@ export default function RootLayout({
         >
           {children}
           <Toaster />
+          <Suspense fallback={null}>
+            <AIChatButton />
+          </Suspense>
         </body>
       </html>
     </ClerkProvider>

@@ -203,116 +203,128 @@ export default function ProjectsList() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="p-4 bg-card rounded-lg shadow-sm border">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Workspace</label>
-              <Select
-                value={workspaceFilter}
-                onValueChange={setWorkspaceFilter}
-              >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select workspace" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Workspaces</SelectItem>
-                  {loadingWorkspaces ? (
-                    <SelectItem value="" disabled>
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        <span>Loading...</span>
-                      </div>
-                    </SelectItem>
-                  ) : availableWorkspaces.length > 0 ? (
-                    availableWorkspaces.map((workspace) => (
-                      <SelectItem key={workspace.id} value={workspace.id}>
-                        {workspace.name}
+    <div className="space-y-8 animate-fadeIn">
+      <Card className="border-blue-100 dark:border-blue-900/30 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">Workspace</label>
+                <Select
+                  value={workspaceFilter}
+                  onValueChange={setWorkspaceFilter}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select workspace" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Workspaces</SelectItem>
+                    {loadingWorkspaces ? (
+                      <SelectItem value="" disabled>
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <span>Loading...</span>
+                        </div>
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="" disabled>No workspaces found</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                    ) : availableWorkspaces.length > 0 ? (
+                      availableWorkspaces.map((workspace) => (
+                        <SelectItem key={workspace.id} value={workspace.id}>
+                          {workspace.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>No workspaces found</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">Status</label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={setStatusFilter}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map(status => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.value !== 'all' ? (
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full bg-${status.color}`}></div>
+                            {status.label}
+                          </div>
+                        ) : status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Status</label>
-              <Select
-                value={statusFilter}
-                onValueChange={setStatusFilter}
+            <div className="mt-2 sm:mt-6">
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg"
               >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map(status => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.value !== 'all' ? (
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full bg-${status.color}`}></div>
-                          {status.label}
-                        </div>
-                      ) : status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                New Project
+              </Button>
             </div>
           </div>
-          
-          <div className="mt-2 sm:mt-6">
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="w-full sm:w-auto"
-            >
-              <PlusCircle className="h-4 w-4 mr-2" />
-              New Project
-            </Button>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {filteredProjects.length === 0 ? (
-        <Card className="p-8 text-center shadow-sm">
-          <p className="text-gray-500 mb-6">{
-            projects.length > 0 
-              ? 'No projects match your filters.' 
-              : 'You don\'t have any projects yet.'
-          }</p>
-          {projects.length === 0 && (
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              size="lg"
-              className="gap-2"
-            >
-              <PlusCircle className="h-4 w-4" />
-              Create Your First Project
-            </Button>
-          )}
+        <Card className="border-blue-100 dark:border-blue-900/30 shadow-sm">
+          <CardContent className="p-12 text-center flex flex-col items-center">
+            <div className="w-16 h-16 mb-4 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+              <PlusCircle className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">{
+              projects.length > 0 
+                ? 'No projects match your filters.' 
+                : 'You don\'t have any projects yet.'
+            }</p>
+            {projects.length === 0 && (
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                size="lg"
+                className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Create Your First Project
+              </Button>
+            )}
+          </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProjects.map((project) => (
+          {filteredProjects.map((project, index) => (
             <Link key={project.id} href={`/projects/${project.id}`}>
-              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer overflow-hidden border-t-4"
-                    style={{
-                      borderTopColor: project.status === 'completed' ? 'var(--secondary)' : 
-                                       project.status === 'active' ? 'var(--primary)' : 
-                                       project.status === 'on-hold' ? 'var(--destructive)' :
-                                       'var(--border)'
-                    }}
+              <Card 
+                className="h-full hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden border-t-4 transform hover:-translate-y-1 animate-fadeIn"
+                style={{
+                  borderTopColor: project.status === 'completed' ? 'var(--green-600)' : 
+                                   project.status === 'active' ? 'var(--blue-600)' : 
+                                   project.status === 'on-hold' ? 'var(--red-600)' :
+                                   project.status === 'planning' ? 'var(--purple-600)' :
+                                   'var(--border)',
+                  animationDelay: `${index * 0.05}s`
+                }}
               >
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <CardTitle className="line-clamp-1">{project.name}</CardTitle>
                     <Badge 
+                      className="capitalize"
                       variant={
-                        project.status === 'completed' ? 'secondary' :
+                        project.status === 'completed' ? 'outline' :
                         project.status === 'active' ? 'default' :
-                        project.status === 'on-hold' ? 'destructive' : 'outline'
+                        project.status === 'on-hold' ? 'destructive' : 
+                        project.status === 'planning' ? 'secondary' : 'outline'
                       }
                     >
                       {project.status.replace(/-/g, ' ')}
@@ -321,7 +333,8 @@ export default function ProjectsList() {
                   <CardDescription className="line-clamp-2 mt-1">{project.description || 'No description'}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-sm font-medium">
+                  <div className="text-sm font-medium flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                     {project.workspaceName}
                   </div>
                 </CardContent>

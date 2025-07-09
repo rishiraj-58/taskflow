@@ -146,14 +146,38 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
   const isOwnerOrAdmin = userRole === 'OWNER' || userRole === 'ADMIN';
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{workspace.name}</h1>
-        <p className="text-muted-foreground mt-2">{workspace.description}</p>
-      </div>
+    <div className="space-y-8 animate-scaleIn">
+      <Card className="border-blue-100 dark:border-blue-900/30 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader>
+          <CardTitle>{workspace.name}</CardTitle>
+          <CardDescription>{workspace.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Workspace Name</h3>
+            <p className="mt-1">{workspace.name}</p>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Description</h3>
+            <p className="mt-1">{workspace.description || 'No description'}</p>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Created</h3>
+            <p className="mt-1">{workspace.createdAt.toLocaleDateString()}</p>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Members</h3>
+            <p className="mt-1">{workspace.members.length} members</p>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Your Role</h3>
+            <p className="mt-1 capitalize">{userRole.toLowerCase()}</p>
+          </div>
+        </CardContent>
+      </Card>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md relative animate-scaleIn" role="alert">
           <span className="block sm:inline">{error}</span>
         </div>
       )}
@@ -165,7 +189,7 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="space-y-4 py-4">
+        <TabsContent value="overview" className="space-y-6 py-4 animate-scaleIn">
           <Card>
             <CardHeader>
               <CardTitle>Workspace Overview</CardTitle>
@@ -196,14 +220,14 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
           </Card>
         </TabsContent>
         
-        <TabsContent value="members" className="py-4">
+        <TabsContent value="members" className="py-4 animate-scaleIn">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Team Members</h2>
             {isOwnerOrAdmin && (
               <button
                 onClick={() => setIsInviteModalOpen(true)}
                 disabled={updating}
-                className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white"
               >
                 {updating ? "Processing..." : "Invite Team Member"}
               </button>
@@ -218,7 +242,7 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
           />
         </TabsContent>
         
-        <TabsContent value="settings" className="space-y-4 py-4">
+        <TabsContent value="settings" className="space-y-6 py-4 animate-scaleIn">
           <Card>
             <CardHeader>
               <CardTitle>Workspace Settings</CardTitle>
@@ -233,7 +257,7 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
                       type="text"
                       value={workspaceName}
                       onChange={(e) => setWorkspaceName(e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       disabled={updating}
                     />
                   </div>
@@ -243,7 +267,7 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
                       rows={3}
                       value={workspaceDescription}
                       onChange={(e) => setWorkspaceDescription(e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       disabled={updating}
                     />
                   </div>
@@ -252,7 +276,7 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
                       type="button"
                       onClick={handleUpdateWorkspace}
                       disabled={updating || !workspaceName.trim()}
-                      className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white"
                     >
                       {updating ? "Saving..." : "Save Changes"}
                     </button>
@@ -265,7 +289,7 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
           </Card>
           
           {userRole === 'OWNER' && (
-            <Card className="border-red-300 dark:border-red-700">
+            <Card className="border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10">
               <CardHeader>
                 <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
                 <CardDescription>Actions that cannot be undone</CardDescription>
@@ -275,7 +299,7 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
                   type="button"
                   onClick={() => setIsDeleteModalOpen(true)}
                   disabled={updating}
-                  className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white"
                 >
                   {updating ? "Processing..." : "Delete Workspace"}
                 </button>
