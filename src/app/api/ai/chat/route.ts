@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { response: 'I apologize, but I encountered an error while processing your request. Please try again or rephrase your question.', toolsUsed: [] },
+      { status: 200 }
     );
   }
 } 
