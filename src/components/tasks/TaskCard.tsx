@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow, parseISO } from "date-fns";
+import { useUser } from "@clerk/nextjs";
+import { PermissionGate } from "@/components/permissions/PermissionGate";
 import { 
   CalendarIcon, 
   Clock, 
@@ -56,6 +58,7 @@ interface TaskCardProps {
 
 export function TaskCard({ task, projectId, onStatusChange, className, style }: TaskCardProps) {
   const [updating, setUpdating] = useState(false);
+  const { user } = useUser();
 
   const handleStatusChange = async (newStatus: string) => {
     setUpdating(true);
@@ -208,14 +211,25 @@ export function TaskCard({ task, projectId, onStatusChange, className, style }: 
     >
       <CardHeader className="p-4 pb-0 flex flex-row items-start justify-between gap-2">
         <div className="space-y-1.5 flex-1">
-          <Link 
-            href={`/projects/${projectId}/tasks/${task.id}`} 
-            className="block group-hover:text-primary transition-colors"
+          <PermissionGate
+            resource="task"
+            action="read"
+            context={{ projectAccess: true }}
+            fallback={
+              <h3 className="font-medium text-base leading-tight line-clamp-2">
+                {task.title}
+              </h3>
+            }
           >
-            <h3 className="font-medium text-base leading-tight line-clamp-2 hover:underline transition-all">
-              {task.title}
-            </h3>
-          </Link>
+            <Link 
+              href={`/projects/${projectId}/tasks/${task.id}`} 
+              className="block group-hover:text-primary transition-colors"
+            >
+              <h3 className="font-medium text-base leading-tight line-clamp-2 hover:underline transition-all">
+                {task.title}
+              </h3>
+            </Link>
+          </PermissionGate>
         </div>
         
         <Badge 
@@ -306,34 +320,43 @@ export function TaskCard({ task, projectId, onStatusChange, className, style }: 
             </div>
           )}
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-7 px-2 text-xs rounded-full"
-                disabled={updating}
-              >
-                Change Status
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {Object.entries(statusConfig).map(([value, config]) => (
-                <DropdownMenuItem
-                  key={value}
-                  disabled={task.status === value || updating}
-                  className={cn(
-                    "flex items-center gap-2",
-                    task.status === value && "bg-accent"
-                  )}
-                  onClick={() => handleStatusChange(value)}
+          <PermissionGate
+            resource="task"
+            action="update"
+            context={{ 
+              assigned: task.assigneeId === user?.id,
+              projectAccess: true // You can enhance this with actual project membership check
+            }}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 px-2 text-xs rounded-full"
+                  disabled={updating}
                 >
-                  <config.icon size={14} className={config.color} />
-                  <span>{config.label}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  Change Status
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {Object.entries(statusConfig).map(([value, config]) => (
+                  <DropdownMenuItem
+                    key={value}
+                    disabled={task.status === value || updating}
+                    className={cn(
+                      "flex items-center gap-2",
+                      task.status === value && "bg-accent"
+                    )}
+                    onClick={() => handleStatusChange(value)}
+                  >
+                    <config.icon size={14} className={config.color} />
+                    <span>{config.label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </PermissionGate>
         </div>
       </CardFooter>
     </Card>

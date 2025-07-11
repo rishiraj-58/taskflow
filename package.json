@@ -50,7 +50,8 @@
     "date-fns": "^2.30.0",
     "lucide-react": "^0.501.0",
     "next": "14.2.28",
-    "openai": "^4.97.0",
+    "openai": "^4.104.0",
+    "puppeteer": "^24.12.1",
     "radio-group": "^0.0.2",
     "react": "^18",
     "react-day-picker": "^8.10.1",
@@ -79,6 +80,10 @@
     "prisma": "^6.6.0",
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }

@@ -16,8 +16,23 @@ model User {
   firstName       String
   lastName        String
   imageUrl        String?
+  
+  // NEW: Role-based features
+  primaryRole          UserRole      @default(DEVELOPER)
+  secondaryRoles       UserRole[]
+  aiPreferences        Json          @default("{}")
+  dashboardPreferences Json          @default("{}")
+  notificationPreferences Json       @default("{}")
+  
+  // NEW: Activity tracking
+  lastActiveAt         DateTime?
+  lastWorkspaceId      String?
+  lastProjectId        String?
+  
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  
+  // Existing relationships
   activityLogs    ActivityLog[]
   assignedBugs    Bug[]             @relation("BugAssignee")
   reportedBugs    Bug[]             @relation("BugReporter")
@@ -29,6 +44,24 @@ model User {
   createdTasks    Task[]            @relation("TaskCreator")
   workspaces      Workspace[]
   workspaceMember WorkspaceMember[]
+  
+  // NEW: Context tracking
+  contexts        UserContext[]
+}
+
+model UserContext {
+  id              String    @id @default(uuid())
+  userId          String
+  workspaceId     String?
+  projectId       String?
+  contextData     Json      @default("{}")
+  sessionDuration Int?
+  lastAccessed    DateTime  @default(now())
+  
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, workspaceId])
+  @@index([lastAccessed])
 }
 
 model Workspace {
@@ -277,6 +310,15 @@ model DependencyLink {
   targetMilestone   Milestone      @relation("TargetMilestone", fields: [targetMilestoneId], references: [id], onDelete: Cascade)
 
   @@unique([sourceMilestoneId, targetMilestoneId])
+}
+
+enum UserRole {
+  WORKSPACE_CREATOR
+  WORKSPACE_ADMIN
+  PROJECT_MANAGER
+  DEVELOPER
+  STAKEHOLDER
+  TEAM_LEAD
 }
 
 enum MemberRole {

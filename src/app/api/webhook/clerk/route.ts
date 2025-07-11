@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   if (eventType === 'user.created' || eventType === 'user.updated') {
-    const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+    const { id, email_addresses, first_name, last_name, image_url, unsafe_metadata } = evt.data;
     
     const primaryEmail = email_addresses[0]?.email_address;
 
@@ -55,15 +55,15 @@ export async function POST(req: Request) {
         where: { clerkId: id },
         update: {
           email: primaryEmail,
-          firstName: first_name || '',
-          lastName: last_name || '',
+          firstName: first_name || (unsafe_metadata.firstName as string) || '',
+          lastName: last_name || (unsafe_metadata.lastName as string) || '',
           imageUrl: image_url,
         },
         create: {
           clerkId: id,
           email: primaryEmail,
-          firstName: first_name || '',
-          lastName: last_name || '',
+          firstName: first_name || (unsafe_metadata.firstName as string) || '',
+          lastName: last_name || (unsafe_metadata.lastName as string) || '',
           imageUrl: image_url,
         },
       });

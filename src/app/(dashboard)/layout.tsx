@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { redirect } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { Spinner } from "@/components/ui/spinner";
-import AuthedLayout from "@/components/AuthedLayout";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 
 export default function DashboardLayout({
   children,
@@ -27,10 +28,17 @@ export default function DashboardLayout({
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <Spinner size="lg" />
+        <div className="text-center space-y-4">
+          <Spinner size="lg" />
+          <p className="text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
 
-  return <AuthedLayout>{children}</AuthedLayout>;
+  return (
+    <NotificationProvider>
+      <AppLayout>{children}</AppLayout>
+    </NotificationProvider>
+  );
 } 

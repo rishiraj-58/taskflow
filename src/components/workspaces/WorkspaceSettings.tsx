@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { UserPlus, Trash2 } from "lucide-react";
-import InvitationModal from "@/components/workspaces/InvitationModal";
+import EnhancedInvitationModal from "@/components/workspaces/EnhancedInvitationModal";
+import InvitationManagementDashboard from "@/components/workspaces/InvitationManagementDashboard";
 import DeleteWorkspaceModal from "@/components/workspaces/DeleteWorkspaceModal";
+import TeamManagementHub from "@/components/workspaces/TeamManagementHub";
 import type { Workspace } from "../../types/workspace";
 import { Separator } from "@/components/ui/separator";
 
@@ -111,24 +113,13 @@ export default function WorkspaceSettings({ workspace }: WorkspaceSettingsProps)
         </CardFooter>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Management</CardTitle>
-          <CardDescription>
-            Invite team members to collaborate in this workspace
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowInviteModal(true)}
-            className="flex items-center gap-2"
-          >
-            <UserPlus className="h-4 w-4" />
-            Invite Members
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Comprehensive Team Management */}
+      <TeamManagementHub
+        workspaceId={workspace.id}
+        currentUserEmail={undefined}
+        userRole="ADMIN" // This should be dynamically determined
+        onMemberUpdate={() => router.refresh()}
+      />
       
       <Separator className="my-6" />
       
@@ -152,7 +143,7 @@ export default function WorkspaceSettings({ workspace }: WorkspaceSettingsProps)
       </Card>
 
       {showInviteModal && (
-        <InvitationModal
+        <EnhancedInvitationModal
           isOpen={showInviteModal}
           onClose={() => setShowInviteModal(false)}
           workspaceId={workspace.id}

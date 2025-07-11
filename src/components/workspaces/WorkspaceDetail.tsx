@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import TeamMembers from "./TeamMembers";
 import InvitationModal from "./InvitationModal";
 import DeleteWorkspaceModal from "./DeleteWorkspaceModal";
+import TeamManagementHub from "./TeamManagementHub";
 
 interface Member {
   id: string;
@@ -221,24 +222,11 @@ export default function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
         </TabsContent>
         
         <TabsContent value="members" className="py-4 animate-scaleIn">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Team Members</h2>
-            {isOwnerOrAdmin && (
-              <button
-                onClick={() => setIsInviteModalOpen(true)}
-                disabled={updating}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white"
-              >
-                {updating ? "Processing..." : "Invite Team Member"}
-              </button>
-            )}
-          </div>
-          
-          <TeamMembers 
-            members={workspace.members} 
+          <TeamManagementHub
+            workspaceId={workspaceId}
             currentUserEmail={user?.primaryEmailAddress?.emailAddress}
             userRole={userRole}
-            workspaceId={workspaceId}
+            onMemberUpdate={fetchWorkspace}
           />
         </TabsContent>
         

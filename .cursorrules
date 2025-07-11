@@ -1,0 +1,254 @@
+# TaskFlow Development Rules
+
+## 🎯 Project Context
+You are working on TaskFlow, a role-based project management platform with AI-powered features. This is a comprehensive redesign with 4 implementation phases over 16 weeks.
+
+## 📚 Reference Documents
+- **Implementation Plan**: `markdown files/TASKFLOW_COMPLETE_IMPLEMENTATION_PLAN.md`
+- **Testing Checklist**: `markdown files/TASKFLOW_TESTING_CHECKLIST.md`
+- **Design Specification**: `markdown files/TASKFLOW_COMPLETE_REDESIGN_SPECIFICATION.md`
+
+## 🏗️ Architecture & Tech Stack
+
+### Core Technologies
+- **Frontend**: Next.js 14 App Router, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: PostgreSQL with enhanced schema
+- **Authentication**: Clerk.js with role-based permissions
+- **AI**: OpenAI GPT-4 with role-specific assistants
+- **UI Components**: shadcn/ui, Radix UI primitives
+
+### Database Schema Priority
+Always reference the complete database schema in the implementation plan. Key tables:
+- `users` (with role system and AI preferences)
+- `workspaces` (with business context)
+- `workspace_memberships` (role-based access)
+- `projects` (enhanced with health metrics)
+- `project_memberships` (granular permissions)
+- `tasks` (AI-enhanced with complexity scoring)
+- `sprints` (with AI planning data)
+- `bugs` (intelligent categorization)
+- `ai_conversations` (role-specific assistants)
+
+## 👤 User Role System
+
+### 5 Primary Roles
+1. **Workspace Creator/Executive** - Strategic oversight, portfolio management
+2. **Project Manager** - Sprint management, team coordination
+3. **Developer** - Task execution, code assistance
+4. **Stakeholder** - Project visibility, ROI tracking
+5. **Team Lead** - Technical guidance, code quality
+
+### Role-Based Development Rules
+- **Always** implement permission checks for every feature
+- **Always** create role-specific UI components and views
+- **Always** ensure AI assistants provide role-appropriate responses
+- **Always** filter data based on user context and permissions
+
+## 🔐 Security & Permissions
+
+### Permission Framework
+```typescript
+// Always use permission checks
+const permissions = usePermissions();
+if (!permissions.can(userRole, 'feature', 'action')) {
+  return <PermissionDenied />;
+}
+```
+
+### Security Requirements
+- **API Routes**: Always require authentication and role validation
+- **Data Access**: Filter based on workspace/project membership
+- **UI Components**: Use `<PermissionGate>` for conditional rendering
+- **Context Switching**: Validate permissions when changing workspace/project
+
+## 🤖 AI Integration Guidelines
+
+### Role-Specific AI Assistants
+- **Strategic Advisor**: Executive-level insights, portfolio analysis
+- **Project Conductor**: Sprint planning, team coordination
+- **Code Companion**: Development assistance, best practices
+- **Business Translator**: Stakeholder communication, ROI analysis
+- **Technical Architect**: Code quality, architecture decisions
+
+### AI Implementation Rules
+```typescript
+// Always include context in AI requests
+const aiContext = {
+  userRole: user.primaryRole,
+  workspaceId: currentWorkspace.id,
+  projectId: currentProject?.id,
+  recentActivity: user.recentActions
+};
+```
+
+## 📱 UI/UX Development Rules
+
+### Responsive Design
+- **Mobile-first**: Start with 320px, scale up
+- **Touch-friendly**: Minimum 44px touch targets
+- **Accessibility**: WCAG 2.1 compliance required
+- **Performance**: < 2s page load, < 500ms API responses
+
+### Component Architecture
+```
+src/components/
+├── dashboards/           # Role-specific dashboards
+├── ai/                  # AI assistant components
+├── context/             # Workspace/project switching
+├── permissions/         # Access control components
+└── ui/                 # Base UI components
+```
+
+### Role-Based Dashboards
+Each role gets a specialized dashboard:
+- Use `useDashboardData(role)` hook for data fetching
+- Implement progressive disclosure based on user needs
+- Include AI insights relevant to the role
+- Ensure mobile responsiveness
+
+## 🧪 Testing Requirements
+
+### Test Coverage Standards
+- **Unit Tests**: 90%+ coverage (Jest + React Testing Library)
+- **Integration Tests**: All API endpoints
+- **E2E Tests**: Critical user journeys (Playwright)
+- **Performance Tests**: Load testing with Artillery
+
+### Testing Rules
+1. **Write tests first** for critical business logic
+2. **Use test IDs** from testing checklist (e.g., `DB-001`, `AUTH-003`)
+3. **Test all role permissions** for every feature
+4. **Validate AI responses** for contextual accuracy
+5. **Check mobile responsiveness** on all components
+
+### Quality Gates
+- **Phase 1**: 95%+ tests passing, zero P0/P1 bugs
+- **Phase 2**: 90%+ tests passing, all dashboards functional
+- **Phase 3**: 85%+ tests passing, AI accuracy standards met
+- **Phase 4**: 100% critical tests passing, security audit passed
+
+## 🔄 Development Workflow
+
+### Phase-Based Development
+Currently in: **[SPECIFY CURRENT PHASE]**
+
+**Phase 1 (Weeks 1-4)**: Foundation
+- Database schema implementation
+- Role-based authentication
+- Permission framework
+- Basic AI integration
+
+**Phase 2 (Weeks 5-8)**: Role-Based Dashboards
+- Executive dashboard
+- Project manager dashboard
+- Developer dashboard
+- Stakeholder dashboard
+- Team lead dashboard
+
+**Phase 3 (Weeks 9-12)**: Advanced Features
+- Smart task management
+- Intelligent sprint planning
+- Enhanced bug tracking
+- Advanced analytics
+- Role-specific AI assistants
+
+**Phase 4 (Weeks 13-16)**: Production Readiness
+- Performance optimization
+- Security hardening
+- Comprehensive testing
+- Deployment preparation
+
+### Code Generation Guidelines
+
+#### Always Include
+1. **TypeScript types** for all data structures
+2. **Error handling** with user-friendly messages
+3. **Loading states** for async operations
+4. **Permission checks** before rendering/actions
+5. **AI context** when making AI requests
+6. **Mobile responsiveness** classes
+7. **Accessibility attributes** (aria-labels, roles)
+
+#### Database Operations
+```typescript
+// Always use context-aware queries
+const tasks = await prisma.task.findMany({
+  where: {
+    project: {
+      workspace: {
+        memberships: {
+          some: { userId: user.id }
+        }
+      }
+    }
+  }
+});
+```
+
+#### Component Structure
+```tsx
+// Standard component template
+interface ComponentProps {
+  // Props with proper TypeScript types
+}
+
+export function Component({ ...props }: ComponentProps) {
+  const { user, permissions } = useAuth();
+  const { currentWorkspace, currentProject } = useContext();
+  
+  // Permission check
+  if (!permissions.can(user.role, 'feature', 'view')) {
+    return <PermissionDenied />;
+  }
+  
+  // Component logic
+  
+  return (
+    <div className="responsive-container">
+      {/* Accessible, responsive UI */}
+    </div>
+  );
+}
+```
+
+## 📊 Progress Tracking
+
+### Implementation Checklist
+- Reference implementation plan for task breakdown
+- Use testing checklist for validation
+- Update progress percentages in documentation
+- Mark completed tasks with ✅
+
+### Documentation Updates
+When implementing features:
+1. Update implementation plan progress
+2. Check off relevant test cases
+3. Note any deviations or blockers
+4. Update weekly progress summaries
+
+## 🚨 Critical Requirements
+
+### Never Skip
+- Permission validation
+- Error handling
+- Loading states
+- Mobile responsiveness
+- Accessibility compliance
+- TypeScript type safety
+- Test coverage
+
+### Always Consider
+- Role-based data filtering
+- Context switching implications
+- AI assistant integration opportunities
+- Performance optimization
+- Security implications
+
+### Naming Conventions
+- **Components**: PascalCase (`UserDashboard`)
+- **Hooks**: camelCase with `use` prefix (`usePermissions`)
+- **Types**: PascalCase with descriptive names (`WorkspaceMembership`)
+- **Test IDs**: Follow checklist format (`AUTH-001`, `UI-005`)
+
+This comprehensive rule set ensures all code generation aligns with the TaskFlow implementation plan, maintains high quality standards, and progresses systematically toward production readiness. 

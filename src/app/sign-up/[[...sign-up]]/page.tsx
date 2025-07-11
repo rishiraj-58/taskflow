@@ -20,21 +20,6 @@ export default function SignUpPage() {
         </div>
         <div className="mt-8">
           <SignUp
-            appearance={{
-              elements: {
-                rootBox: "mx-auto",
-                card: "bg-white dark:bg-gray-800 shadow-md rounded-lg",
-                headerTitle: "text-2xl font-bold text-gray-900 dark:text-white",
-                headerSubtitle: "text-gray-600 dark:text-gray-400",
-                socialButtonsBlockButton: "text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600",
-                dividerLine: "bg-gray-300 dark:bg-gray-600",
-                dividerText: "text-gray-500 dark:text-gray-400",
-                formFieldLabel: "text-gray-700 dark:text-gray-300",
-                formFieldInput: "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
-                formButtonPrimary: "bg-blue-600 hover:bg-blue-700 text-white",
-                footerActionLink: "text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300",
-              },
-            }}
             redirectUrl="/onboarding"
             signInUrl="/sign-in"
           />
